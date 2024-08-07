@@ -78,27 +78,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let mut current_series: Option<String> = None;
 
                     for series in &guide {
-                        for ep in &series.episodes {
-                            // Check if a new series starts
-                            if current_series.as_deref() != Some(&series.series) {
-                                if let Some(series_name) = current_series.take() {
-                                    items.push(ListItem::new(format!("--- End of Series: {} ---", series_name)));
-                                }
-                                current_series = Some(series.series.clone());
-                                items.push(ListItem::new(format!("--- Start of Series: {} ---", series.series)));
-                            }
+                        // Add extra space and style around the series name
+                        if current_series.as_deref() != Some(&series.series) {
+                            current_series = Some(series.series.clone());
+                            let header_style = Style::default()
+                                .fg(Color::Cyan)
+                                .add_modifier(tui::style::Modifier::BOLD);
+                            let header_text = format!(
+                                "\n\n{}\n\n",
+                                series.series
+                            );
+                            items.push(ListItem::new(header_text).style(header_style));
+                        }
 
+                        for ep in &series.episodes {
                             items.push(ListItem::new(format!(
                                 "{}: {}",
                                 ep.episode_number,
                                 ep.title
                             )));
                         }
-                    }
-                    
-                    // Add end of last series
-                    if let Some(series_name) = current_series {
-                        items.push(ListItem::new(format!("--- End of Series: {} ---", series_name)));
                     }
 
                     let list = List::new(items)
