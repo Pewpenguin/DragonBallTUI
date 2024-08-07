@@ -1,4 +1,7 @@
+mod data;
+
 use std::io;
+use std::path::Path;
 use crossterm::{
     event::{self, Event, KeyCode},
     terminal::{self, ClearType},
@@ -11,9 +14,7 @@ use tui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
-
-mod data;
-use data::{DragonBallGuide, Episode};
+use data::{load_guide_from_file, save_guide_to_file, Series, Episode};
 
 enum AppMode {
     List,
@@ -21,6 +22,28 @@ enum AppMode {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let guide_path = "episodes.json";
+
+    // Check if the file exists, create a default one if not
+    if !Path::new(guide_path).exists() {
+        println!("File not found. Creating a default file.");
+        let default_guide = vec![Series {
+            series: "Dragon Ball".to_string(),
+            episodes: vec![Episode {
+                episode_number: 1,
+                title: "The Secret of the Dragon Balls".to_string(),
+                description: "Bulma's search for six more Dragon Balls leads her to a remote valley...".to_string(),
+                release_date: "February 26, 1986".to_string(),
+                duration: "25m".to_string(),
+                saga: "Emperor Pilaf Saga (1986)".to_string(),
+            }],
+        }];
+        save_guide_to_file(&default_guide, guide_path)?;
+    }
+
+    // Load data
+    let guide = load_guide_from_file(guide_path)?;
+
     // Setup terminal
     terminal::enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -29,31 +52,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-
-    // Sample data
-    let  guide = DragonBallGuide {
-        episodes: vec![
-            Episode {
-                id: 1,
-                title: "The Beginning".to_string(),
-                summary: "Goku's adventure begins.".to_string(),
-                key_events: vec!["Goku meets Bulma".to_string()],
-                character_appearances: vec!["Goku".to_string(), "Bulma".to_string()],
-                user_rating: 4.5,
-                watched: false,
-            },
-            Episode {
-                id: 2,
-                title: "The Search Begins".to_string(),
-                summary: "Goku and Bulma start their journey.".to_string(),
-                key_events: vec!["Meeting Yamcha".to_string()],
-                character_appearances: vec!["Goku".to_string(), "Bulma".to_string(), "Yamcha".to_string()],
-                user_rating: 4.7,
-                watched: false,
-            },
-        ],
-        movies: vec![], // Add movie data if needed
-    };
 
     let mut list_state = tui::widgets::ListState::default();
     list_state.select(Some(0));
@@ -77,13 +75,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     f.render_widget(block, chunks[0]);
 
                     let items: Vec<_> = guide
-                        .episodes
                         .iter()
+                        .flat_map(|series| &series.episodes)
                         .map(|ep| {
                             ListItem::new(format!(
-                                "{}{}: {}",
-                                if ep.watched { "[x] " } else { "[ ] " },
-                                ep.id,
+                                "{}: {}", // Fixed format string
+                                ep.episode_number,
                                 ep.title
                             ))
                         })
@@ -94,18 +91,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     f.render_stateful_widget(list, chunks[1], &mut list_state);
                 }
                 AppMode::Details(index) => {
-                    if let Some(episode) = guide.episodes.get(index) {
+                    let episode = guide.iter()
+                        .flat_map(|series| &series.episodes)
+                        .nth(index);
+
+                    if let Some(episode) = episode {
                         let block = Block::default()
                             .borders(Borders::ALL)
                             .title(format!("Episode Details: {}", episode.title));
                         let details = format!(
-                            "ID: {}\nSummary: {}\nKey Events: {}\nCharacter Appearances: {}\nRating: {}\nWatched: {}",
-                            episode.id,
-                            episode.summary,
-                            episode.key_events.join(", "),
-                            episode.character_appearances.join(", "),
-                            episode.user_rating,
-                            if episode.watched { "Yes" } else { "No" }
+                            "Episode Number: {}\nDescription: {}\nRelease Date: {}\nDuration: {}\nSaga: {}",
+                            episode.episode_number,
+                            episode.description,
+                            episode.release_date,
+                            episode.duration,
+                            episode.saga
                         );
                         let paragraph = Paragraph::new(details)
                             .block(block)
@@ -130,7 +130,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 KeyCode::Down => {
                     let next = list_state.selected().map_or(0, |i| i + 1);
-                    if next < guide.episodes.len() {
+                    let max_index = guide.iter()
+                        .flat_map(|series| &series.episodes)
+                        .count();
+                    if next < max_index {
                         list_state.select(Some(next));
                     }
                 }
