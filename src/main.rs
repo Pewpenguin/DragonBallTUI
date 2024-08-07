@@ -1,5 +1,4 @@
 mod data;
-
 use std::io;
 use std::path::Path;
 use crossterm::{
@@ -14,10 +13,14 @@ use tui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
+
+// Ensure these imports match your `data.rs` file
 use data::{load_guide_from_file, save_guide_to_file, Series, Episode};
 
 enum AppMode {
     List,
+    Characters,
+    Movies,
     Details(usize), // Store the index of the selected episode
 }
 
@@ -57,6 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     list_state.select(Some(0));
 
     let mut app_mode = AppMode::List;
+    let mut selected_tab = 0;
 
     // Main loop
     loop {
@@ -67,43 +71,68 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .constraints([Constraint::Percentage(10), Constraint::Percentage(90)].as_ref())
                 .split(size);
 
+            // Tabs header
+            let tab_chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(33); 3].as_ref())
+                .split(chunks[0]);
+
+            let tab_titles = ["Episodes", "Characters", "Movies"];
+            for (i, tab_title) in tab_titles.iter().enumerate() {
+                let style = if i == selected_tab {
+                    Style::default().bg(Color::Yellow).fg(Color::Black)
+                } else {
+                    Style::default().bg(Color::Black).fg(Color::White)
+                };
+                let tab_block = Block::default()
+                    .borders(Borders::ALL)
+                    .title(*tab_title)  // Use `*tab_title` to dereference the `&&str` to `&str`
+                    .style(style);
+                f.render_widget(tab_block, tab_chunks[i]);
+            }
+
             match app_mode {
                 AppMode::List => {
                     let block = Block::default()
                         .borders(Borders::ALL)
                         .title("Dragon Ball Episode Guide");
-                    f.render_widget(block, chunks[0]);
+                    f.render_widget(block, chunks[1]);
 
-                    let mut items: Vec<ListItem> = Vec::new();
-                    let mut current_series: Option<String> = None;
-
-                    for series in &guide {
-                        // Add extra space and style around the series name
-                        if current_series.as_deref() != Some(&series.series) {
-                            current_series = Some(series.series.clone());
-                            let header_style = Style::default()
-                                .fg(Color::Cyan)
-                                .add_modifier(tui::style::Modifier::BOLD);
-                            let header_text = format!(
-                                "\n\n{}\n\n",
-                                series.series
-                            );
-                            items.push(ListItem::new(header_text).style(header_style));
-                        }
-
-                        for ep in &series.episodes {
-                            items.push(ListItem::new(format!(
-                                "{}: {}",
+                    let items: Vec<_> = guide
+                        .iter()
+                        .flat_map(|series| &series.episodes)
+                        .map(|ep| {
+                            ListItem::new(format!(
+                                "{}: {}", // Fixed format string
                                 ep.episode_number,
                                 ep.title
-                            )));
-                        }
-                    }
-
+                            ))
+                        })
+                        .collect();
                     let list = List::new(items)
                         .block(Block::default().borders(Borders::ALL).title("Episodes"))
                         .highlight_style(Style::default().bg(Color::Yellow));
                     f.render_stateful_widget(list, chunks[1], &mut list_state);
+                }
+                AppMode::Characters => {
+                    let block = Block::default()
+                        .borders(Borders::ALL)
+                        .title("Characters");
+                    let characters_content = "Characters content goes here.";
+                    let paragraph = Paragraph::new(characters_content)
+                        .block(block)
+                        .wrap(tui::widgets::Wrap { trim: true });
+                    f.render_widget(paragraph, chunks[1]);
+                }
+                AppMode::Movies => {
+                    let block = Block::default()
+                        .borders(Borders::ALL)
+                        .title("Movies");
+                    let movies_content = "Movies content goes here.";
+                    let paragraph = Paragraph::new(movies_content)
+                        .block(block)
+                        .wrap(tui::widgets::Wrap { trim: true });
+                    f.render_widget(paragraph, chunks[1]);
                 }
                 AppMode::Details(index) => {
                     let episode = guide.iter()
@@ -134,6 +163,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Event::Key(key) = event::read()? {
             match key.code {
                 KeyCode::Char('q') => break,
+                KeyCode::Tab => {
+                    selected_tab = (selected_tab + 1) % 3;
+                    app_mode = match selected_tab {
+                        0 => AppMode::List,
+                        1 => AppMode::Characters,
+                        2 => AppMode::Movies,
+                        _ => app_mode,
+                    };
+                }
                 KeyCode::Enter => {
                     if let AppMode::List = app_mode {
                         if let Some(selected) = list_state.selected() {
