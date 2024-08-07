@@ -74,17 +74,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .title("Dragon Ball Episode Guide");
                     f.render_widget(block, chunks[0]);
 
-                    let items: Vec<_> = guide
-                        .iter()
-                        .flat_map(|series| &series.episodes)
-                        .map(|ep| {
-                            ListItem::new(format!(
-                                "{}: {}", // Fixed format string
+                    let mut items: Vec<ListItem> = Vec::new();
+                    let mut current_series: Option<String> = None;
+
+                    for series in &guide {
+                        for ep in &series.episodes {
+                            // Check if a new series starts
+                            if current_series.as_deref() != Some(&series.series) {
+                                if let Some(series_name) = current_series.take() {
+                                    items.push(ListItem::new(format!("--- End of Series: {} ---", series_name)));
+                                }
+                                current_series = Some(series.series.clone());
+                                items.push(ListItem::new(format!("--- Start of Series: {} ---", series.series)));
+                            }
+
+                            items.push(ListItem::new(format!(
+                                "{}: {}",
                                 ep.episode_number,
                                 ep.title
-                            ))
-                        })
-                        .collect();
+                            )));
+                        }
+                    }
+                    
+                    // Add end of last series
+                    if let Some(series_name) = current_series {
+                        items.push(ListItem::new(format!("--- End of Series: {} ---", series_name)));
+                    }
+
                     let list = List::new(items)
                         .block(Block::default().borders(Borders::ALL).title("Episodes"))
                         .highlight_style(Style::default().bg(Color::Yellow));
