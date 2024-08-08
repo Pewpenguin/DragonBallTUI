@@ -72,13 +72,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .direction(Direction::Vertical)
                 .constraints([
                     Constraint::Length(3),  // Main tabs
-                    Constraint::Length(3),  // Series tabs
                     Constraint::Min(1),     // Content
                 ].as_ref())
                 .split(size);
 
             // Main Tabs header
-            let tab_titles = ["Episodes", "Characters", "Movies"];
+            let tab_titles = ["Episodes", "Movies", "Characters"];
             let spans: Vec<Spans> = tab_titles.iter().map(|&t| {
                 Spans::from(vec![Span::styled(t, Style::default().fg(Color::White))])
             }).collect();
@@ -92,8 +91,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             f.render_widget(tabs, layout_chunks[0]);
 
-            // Render Series Tabs only if on Episodes tab
+            // Adjust layout if on Episodes tab
             if selected_tab == 0 {
+                let layout_with_series_tabs = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([
+                        Constraint::Length(3),  // Main tabs
+                        Constraint::Length(3),  // Series tabs
+                        Constraint::Min(1),     // Content
+                    ].as_ref())
+                    .split(size);
+
                 let series_names: Vec<String> = guide.iter()
                     .map(|series| series.series.clone())
                     .collect();
@@ -109,66 +117,70 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .divider(Span::raw(" | "))
                     .select(selected_series_tab);
 
-                f.render_widget(series_tabs_widget, layout_chunks[1]);
-            }
+                f.render_widget(series_tabs_widget, layout_with_series_tabs[1]);
 
-            // Render Content based on AppMode
-            match app_mode {
-                AppMode::Characters => {
-                    let block = Block::default()
-                        .borders(Borders::ALL)
-                        .title("Characters");
-                    let characters_content = "Characters content goes here.";
-                    let paragraph = Paragraph::new(characters_content)
-                        .block(block)
-                        .wrap(tui::widgets::Wrap { trim: true });
-                    f.render_widget(paragraph, layout_chunks[2]);
-                }
-                AppMode::Movies => {
-                    let block = Block::default()
-                        .borders(Borders::ALL)
-                        .title("Movies");
-                    let movies_content = "Movies content goes here.";
-                    let paragraph = Paragraph::new(movies_content)
-                        .block(block)
-                        .wrap(tui::widgets::Wrap { trim: true });
-                    f.render_widget(paragraph, layout_chunks[2]);
-                }
-                AppMode::Details(series_index, _episode_index) => {
-                    if let Some(series) = guide.get(series_index) {
-                        if let Some(episode) = series.episodes.get(_episode_index) {
-                            let block = Block::default()
-                                .borders(Borders::ALL)
-                                .title(format!("Episode Details: {}", episode.title));
-                            let details = format!(
-                                "Episode Number: {}\nDescription: {}\nRelease Date: {}\nDuration: {}\nSaga: {}",
-                                episode.episode_number,
-                                episode.description,
-                                episode.release_date,
-                                episode.duration,
-                                episode.saga
-                            );
-                            let paragraph = Paragraph::new(details)
-                                .block(block)
-                                .wrap(tui::widgets::Wrap { trim: true });
-                            f.render_widget(paragraph, layout_chunks[2]);
+                match app_mode {
+                    AppMode::EpisodesSeries(series_index) => {
+                        if let Some(series) = guide.get(series_index) {
+                            let items: Vec<_> = series.episodes.iter()
+                                .map(|ep| ListItem::new(format!(
+                                    "{}: {}",
+                                    ep.episode_number,
+                                    ep.title
+                                )))
+                                .collect();
+                            let list = List::new(items)
+                                .block(Block::default().borders(Borders::ALL).title("Episodes"))
+                                .highlight_style(Style::default().bg(Color::Yellow));
+                            f.render_stateful_widget(list, layout_with_series_tabs[2], &mut list_state);
                         }
                     }
-                }
-                AppMode::EpisodesSeries(series_index) => {
-                    if let Some(series) = guide.get(series_index) {
-                        let items: Vec<_> = series.episodes.iter()
-                            .map(|ep| ListItem::new(format!(
-                                "{}: {}",
-                                ep.episode_number,
-                                ep.title
-                            )))
-                            .collect();
-                        let list = List::new(items)
-                            .block(Block::default().borders(Borders::ALL).title("Episodes"))
-                            .highlight_style(Style::default().bg(Color::Yellow));
-                        f.render_stateful_widget(list, layout_chunks[2], &mut list_state);
+                    AppMode::Details(series_index, _episode_index) => {
+                        if let Some(series) = guide.get(series_index) {
+                            if let Some(episode) = series.episodes.get(_episode_index) {
+                                let block = Block::default()
+                                    .borders(Borders::ALL)
+                                    .title(format!("Episode Details: {}", episode.title));
+                                let details = format!(
+                                    "Episode Number: {}\nDescription: {}\nRelease Date: {}\nDuration: {}\nSaga: {}",
+                                    episode.episode_number,
+                                    episode.description,
+                                    episode.release_date,
+                                    episode.duration,
+                                    episode.saga
+                                );
+                                let paragraph = Paragraph::new(details)
+                                    .block(block)
+                                    .wrap(tui::widgets::Wrap { trim: true });
+                                f.render_widget(paragraph, layout_with_series_tabs[2]);
+                            }
+                        }
                     }
+                    _ => {}
+                }
+            } else {
+                match app_mode {
+                    AppMode::Characters => {
+                        let block = Block::default()
+                            .borders(Borders::ALL)
+                            .title("Characters");
+                        let characters_content = "Characters content goes here.";
+                        let paragraph = Paragraph::new(characters_content)
+                            .block(block)
+                            .wrap(tui::widgets::Wrap { trim: true });
+                        f.render_widget(paragraph, layout_chunks[1]);
+                    }
+                    AppMode::Movies => {
+                        let block = Block::default()
+                            .borders(Borders::ALL)
+                            .title("Movies");
+                        let movies_content = "Movies content goes here.";
+                        let paragraph = Paragraph::new(movies_content)
+                            .block(block)
+                            .wrap(tui::widgets::Wrap { trim: true });
+                        f.render_widget(paragraph, layout_chunks[1]);
+                    }
+                    _ => {}
                 }
             }
         })?;
@@ -180,8 +192,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     selected_tab = (selected_tab + 1) % 3;
                     app_mode = match selected_tab {
                         0 => AppMode::EpisodesSeries(selected_series_tab),
-                        1 => AppMode::Characters,
-                        2 => AppMode::Movies,
+                        1 => AppMode::Movies,
+                        2 => AppMode::Characters,
                         _ => app_mode,
                     };
 
