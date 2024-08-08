@@ -19,11 +19,10 @@ use tui::{
 use data::{load_guide_from_file, save_guide_to_file, Series, Episode};
 
 enum AppMode {
-    List,
     Characters,
     Movies,
-    Details(usize), // Store the index of the selected episode
-    EpisodesSeries(usize), // Store the index of the selected series
+    Details(usize, usize), // (series_index, episode_index)
+    EpisodesSeries(usize), // series_index
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -61,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut list_state = tui::widgets::ListState::default();
     list_state.select(Some(0));
 
-    let mut app_mode = AppMode::List;
+    let mut app_mode = AppMode::EpisodesSeries(0);
     let mut selected_tab = 0;
     let mut selected_series_tab = 0;
 
@@ -115,28 +114,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // Render Content based on AppMode
             match app_mode {
-                AppMode::List => {
-                    let block = Block::default()
-                        .borders(Borders::ALL)
-                        .title("Dragon Ball Episode Guide");
-                    f.render_widget(block, layout_chunks[2]);
-
-                    let items: Vec<_> = guide
-                        .iter()
-                        .flat_map(|series| &series.episodes)
-                        .map(|ep| {
-                            ListItem::new(format!(
-                                "{}: {}",
-                                ep.episode_number,
-                                ep.title
-                            ))
-                        })
-                        .collect();
-                    let list = List::new(items)
-                        .block(Block::default().borders(Borders::ALL).title("Episodes"))
-                        .highlight_style(Style::default().bg(Color::Yellow));
-                    f.render_stateful_widget(list, layout_chunks[2], &mut list_state);
-                }
                 AppMode::Characters => {
                     let block = Block::default()
                         .borders(Borders::ALL)
@@ -157,27 +134,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .wrap(tui::widgets::Wrap { trim: true });
                     f.render_widget(paragraph, layout_chunks[2]);
                 }
-                AppMode::Details(index) => {
-                    let episode = guide.iter()
-                        .flat_map(|series| &series.episodes)
-                        .nth(index);
-
-                    if let Some(episode) = episode {
-                        let block = Block::default()
-                            .borders(Borders::ALL)
-                            .title(format!("Episode Details: {}", episode.title));
-                        let details = format!(
-                            "Episode Number: {}\nDescription: {}\nRelease Date: {}\nDuration: {}\nSaga: {}",
-                            episode.episode_number,
-                            episode.description,
-                            episode.release_date,
-                            episode.duration,
-                            episode.saga
-                        );
-                        let paragraph = Paragraph::new(details)
-                            .block(block)
-                            .wrap(tui::widgets::Wrap { trim: true });
-                        f.render_widget(paragraph, layout_chunks[2]);
+                AppMode::Details(series_index, _episode_index) => {
+                    if let Some(series) = guide.get(series_index) {
+                        if let Some(episode) = series.episodes.get(_episode_index) {
+                            let block = Block::default()
+                                .borders(Borders::ALL)
+                                .title(format!("Episode Details: {}", episode.title));
+                            let details = format!(
+                                "Episode Number: {}\nDescription: {}\nRelease Date: {}\nDuration: {}\nSaga: {}",
+                                episode.episode_number,
+                                episode.description,
+                                episode.release_date,
+                                episode.duration,
+                                episode.saga
+                            );
+                            let paragraph = Paragraph::new(details)
+                                .block(block)
+                                .wrap(tui::widgets::Wrap { trim: true });
+                            f.render_widget(paragraph, layout_chunks[2]);
+                        }
                     }
                 }
                 AppMode::EpisodesSeries(series_index) => {
@@ -204,68 +179,62 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 KeyCode::Tab => {
                     selected_tab = (selected_tab + 1) % 3;
                     app_mode = match selected_tab {
-                        0 => {
-                            // Keep the episode details if switching back to Episodes tab
-                            if let AppMode::Details(selected) = app_mode {
-                                AppMode::Details(selected)
-                            } else {
-                                AppMode::List
-                            }
-                        }
+                        0 => AppMode::EpisodesSeries(selected_series_tab),
                         1 => AppMode::Characters,
                         2 => AppMode::Movies,
                         _ => app_mode,
                     };
 
                     if selected_tab == 0 {
-                        // Reset the selected series tab and the list state when switching to Episodes tab
                         selected_series_tab = 0;
                         list_state.select(Some(0));
                     } else {
-                        // Hide series tabs if not on Episodes tab
                         selected_series_tab = 0;
                     }
                 }
-                KeyCode::Char('c') => { // Use 'c' for confirming actions in series tabs
-                    // Example action for 'c' - change this to your needs
-                    if selected_tab == 0 {
-                        app_mode = AppMode::EpisodesSeries(selected_series_tab);
-                    }
-                }
-                KeyCode::Enter => { // Use Enter to open episode details
+                KeyCode::Enter => {
                     match app_mode {
-                        AppMode::List => {
-                            if let Some(selected) = list_state.selected() {
-                                app_mode = AppMode::Details(selected);
-                            }
-                        }
-                        AppMode::Details(_) => app_mode = AppMode::List,
-                        AppMode::EpisodesSeries(series_index) => {
-                            // Stay in EpisodesSeries mode when Enter is pressed
+                        AppMode::Details(series_index, _episode_index) => {
+                            // Move back to the EpisodesSeries view with the current series tab
                             app_mode = AppMode::EpisodesSeries(series_index);
+                        }
+                        AppMode::EpisodesSeries(series_index) => {
+                            if let Some(selected) = list_state.selected() {
+                                app_mode = AppMode::Details(series_index, selected);
+                            }
                         }
                         _ => {}
                     }
                 }
                 KeyCode::Down => {
-                    let next = list_state.selected().map_or(0, |i| i + 1);
-                    let max_index = guide.iter()
-                        .flat_map(|series| &series.episodes)
-                        .count();
-                    if next < max_index {
-                        list_state.select(Some(next));
+                    match app_mode {
+                        AppMode::EpisodesSeries(series_index) => {
+                            if let Some(selected) = list_state.selected() {
+                                if let Some(series) = guide.get(series_index) {
+                                    let max_index = series.episodes.len();
+                                    if selected + 1 < max_index {
+                                        list_state.select(Some(selected + 1));
+                                    }
+                                }
+                            }
+                        }
+                        _ => {}
                     }
                 }
                 KeyCode::Up => {
-                    let prev = list_state.selected().map_or(0, |i| i.saturating_sub(1));
-                    list_state.select(Some(prev));
+                    match app_mode {
+                        AppMode::EpisodesSeries(_) => {
+                            let prev = list_state.selected().map_or(0, |i| i.saturating_sub(1));
+                            list_state.select(Some(prev));
+                        }
+                        _ => {}
+                    }
                 }
                 KeyCode::Right => {
                     if selected_tab == 0 {
                         let max_index = guide.len();
                         if selected_series_tab < max_index - 1 {
                             selected_series_tab += 1;
-                            // Reset the list state to the top when switching series tabs
                             list_state.select(Some(0));
                             app_mode = AppMode::EpisodesSeries(selected_series_tab);
                         }
@@ -275,7 +244,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if selected_tab == 0 {
                         if selected_series_tab > 0 {
                             selected_series_tab -= 1;
-                            // Reset the list state to the top when switching series tabs
                             list_state.select(Some(0));
                             app_mode = AppMode::EpisodesSeries(selected_series_tab);
                         }
