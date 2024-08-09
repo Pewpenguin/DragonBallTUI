@@ -15,12 +15,10 @@ use tui::{
     Terminal,
 };
 
-// Ensure these imports match your `data.rs` file
 use data::{
     load_guide_from_file, save_guide_to_file, load_movies_from_file, save_movies_to_file, Series, Episode, Movie
 };
 
-// Update the AppMode enum to handle movie details and derive PartialEq
 #[derive(Debug, PartialEq)]
 enum AppMode {
     Characters,
@@ -55,10 +53,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Movies file not found. Creating a default file.");
         let default_movies = vec![Movie {
             number: 1,
-            title: "Dragon Ball Z: Dead Zone".to_string(),
-            release_date: "July 15, 1989".to_string(),
-            runtime: "45m".to_string(),
-            description: "Goku and his friends are up against Garlic Jr., who seeks to take over the world.".to_string(),
+            title: "Dragon Ball: Curse of the Blood Rubies".to_string(),
+            release_date: "December 20, 1986".to_string(),
+            runtime: "50m".to_string(),
+            description: "Goku and his friends must stop King Gurumes from destroying the city for blood rubies and gathering the seven Dragon Balls.".to_string(),
+            director: "Daisuke Nishio".to_string(),
+            genres: vec!["Action".to_string(), "Adventure".to_string(), "Fantasy".to_string()],
+            trivia: "This movie is a retelling of the first story arc of the original Dragon Ball anime.".to_string(),
+            plot_keywords: vec!["Dragon Balls".to_string(), "King Gurumes".to_string(), "Blood Rubies".to_string(), "Martial Arts".to_string()],
         }];
         save_movies_to_file(&default_movies, movies_path)?;
     }
@@ -224,10 +226,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     AppMode::MoviesList => {
                         let movie_items: Vec<_> = movies.iter()
                             .map(|movie| ListItem::new(format!(
-                                "{}: {} ({})",
+                                "{}: {} ",
                                 movie.number,
                                 movie.title,
-                                movie.release_date
                             )))
                             .collect();
                         
@@ -243,11 +244,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .borders(Borders::ALL)
                                 .title(format!("Movie Details: {}", movie.title));
                             let details = format!(
-                                "Number: {}\nRelease Date: {}\nRuntime: {}\nDescription: {}",
+                                "Number: {}\nRelease Date: {}\nRuntime: {}\nDescription: {}Director: {}\nGenres: {}\nTrivia: {}\nPlot Keywords: {}",
                                 movie.number,
                                 movie.release_date,
                                 movie.runtime,
-                                movie.description
+                                movie.description,
+                                movie.director,
+                                movie.genres.join(", "),
+                                movie.trivia,
+                                movie.plot_keywords.join(", ")
                             );
                             let paragraph = Paragraph::new(details)
                                 .block(block)

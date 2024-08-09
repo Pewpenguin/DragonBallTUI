@@ -26,8 +26,11 @@ pub struct Movie {
     pub release_date: String,
     pub runtime: String,
     pub description: String,
+    pub director: String,
+    pub genres: Vec<String>,
+    pub trivia: String,
+    pub plot_keywords: Vec<String>,
 }
-
 pub fn load_guide_from_file(file_path: &str) -> Result<Vec<Series>, Box<dyn std::error::Error>> {
     let path = Path::new(file_path);
     if !path.exists() {
