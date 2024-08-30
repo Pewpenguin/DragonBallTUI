@@ -15,7 +15,7 @@ A terminal-based application to explore the Dragon Ball series, including episod
 
 2. Clone this repository:
    ```
-   git clone https://github.com/yourusername/dragon-ball-guide.git
+   git clone https://github.com/Pewpenguin/dragon-ball-guide.git
    cd dragon-ball-guide
    ```
 
