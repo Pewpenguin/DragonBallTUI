@@ -31,6 +31,7 @@ pub struct Movie {
     pub trivia: String,
     pub plot_keywords: Vec<String>,
 }
+
 pub fn load_guide_from_file(file_path: &str) -> Result<Vec<Series>, Box<dyn std::error::Error>> {
     let path = Path::new(file_path);
     if !path.exists() {
@@ -42,6 +43,7 @@ pub fn load_guide_from_file(file_path: &str) -> Result<Vec<Series>, Box<dyn std:
     Ok(guide)
 }
 
+#[allow(dead_code)]
 pub fn save_guide_to_file(guide: &Vec<Series>, file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new(file_path);
     let file_content = serde_json::to_string_pretty(&guide)?;
@@ -61,6 +63,7 @@ pub fn load_movies_from_file(file_path: &str) -> Result<Vec<Movie>, Box<dyn std:
     Ok(movies)
 }
 
+#[allow(dead_code)]
 pub fn save_movies_to_file(movies: &Vec<Movie>, file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new(file_path);
     let file_content = serde_json::to_string_pretty(&movies)?;
