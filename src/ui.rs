@@ -6,7 +6,7 @@ use tui::{
     widgets::{Block, Borders, List, ListItem, Paragraph, Tabs},
     Frame,
 };
-use crate::app::{App, AppMode};
+use crate::app::{App, AppMode, SearchResultType};
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let size = f.size();
@@ -33,8 +33,7 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     }
 }
 
-// Add this new function to draw the search tab
-fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Rect) {
+fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
     let search_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -48,10 +47,26 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::R
         .block(Block::default().borders(Borders::ALL).title("Search"));
     f.render_widget(search_input, search_layout[0]);
 
-    let results_text = "Search results will be displayed here.";
-    let results = Paragraph::new(results_text)
-        .block(Block::default().borders(Borders::ALL).title("Results"));
-    f.render_widget(results, search_layout[1]);
+    let results: Vec<ListItem> = app.search_results.iter()
+        .map(|result| {
+            let result_type = match result.result_type {
+                SearchResultType::Episode(_, _) => "Episode",
+                SearchResultType::Movie(_) => "Movie",
+            };
+            ListItem::new(vec![
+                Spans::from(vec![
+                    Span::styled(format!("[{}] ", result_type), Style::default().fg(Color::Green)),
+                    Span::raw(&result.title),
+                ]),
+            ])
+        })
+        .collect();
+
+    let results_list = List::new(results)
+        .block(Block::default().borders(Borders::ALL).title("Results"))
+        .highlight_style(Style::default().bg(Color::Yellow));
+
+    f.render_stateful_widget(results_list, search_layout[1], &mut app.list_state);
 }
 
 fn draw_main_tabs<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Rect) {

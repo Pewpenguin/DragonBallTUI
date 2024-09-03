@@ -72,5 +72,5 @@ This project is open source and available under the [MIT License](LICENSE).
 ## TODO
 
 - [ ] Implement the Characters tab functionality
-- [ ] Add search functionality 
+- [x] Add search functionality 
 - [ ] Implement sorting options 

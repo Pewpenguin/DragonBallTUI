@@ -10,6 +10,7 @@ pub struct App {
     pub selected_series_tab: usize,
     pub previous_tab: usize,
     pub search_query: String,
+    pub search_results: Vec<SearchResult>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -20,6 +21,18 @@ pub enum AppMode {
     EpisodesSeries(usize),
     MovieDetails(usize),
     Search,
+}
+
+#[derive(Debug, Clone)]
+pub struct SearchResult {
+    pub result_type: SearchResultType,
+    pub title: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum SearchResultType {
+    Episode(usize, usize), // (series_index, episode_index)
+    Movie(usize),          // movie_index
 }
 
 impl App {
@@ -39,6 +52,7 @@ impl App {
             selected_series_tab: 0,
             previous_tab: 0,
             search_query: String::new(),
+            search_results: Vec::new(),
         })
     }
 
@@ -55,6 +69,33 @@ impl App {
                 }
             }
             _ => self.list_state.select(None),
+        }
+    }
+
+    pub fn perform_search(&mut self) {
+        self.search_results.clear();
+        let query = self.search_query.to_lowercase();
+
+        // Search episodes
+        for (series_index, series) in self.guide.iter().enumerate() {
+            for (episode_index, episode) in series.episodes.iter().enumerate() {
+                if episode.title.to_lowercase().contains(&query) || episode.description.to_lowercase().contains(&query) {
+                    self.search_results.push(SearchResult {
+                        result_type: SearchResultType::Episode(series_index, episode_index),
+                        title: format!("{} - {}", series.series, episode.title),
+                    });
+                }
+            }
+        }
+
+        // Search movies
+        for (movie_index, movie) in self.movies.iter().enumerate() {
+            if movie.title.to_lowercase().contains(&query) || movie.description.to_lowercase().contains(&query) {
+                self.search_results.push(SearchResult {
+                    result_type: SearchResultType::Movie(movie_index),
+                    title: movie.title.clone(),
+                });
+            }
         }
     }
 }

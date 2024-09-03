@@ -1,5 +1,5 @@
 use crossterm::event::{KeyCode, KeyEvent};
-use crate::app::{App, AppMode};
+use crate::app::{App, AppMode, SearchResultType};
 
 pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn std::error::Error>> {
     match app.app_mode {
@@ -13,12 +13,49 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         2 => AppMode::Characters,
                         _ => app.app_mode.clone(),
                     };
+                    app.search_results.clear();
                 }
                 KeyCode::Char(c) => {
                     app.search_query.push(c);
+                    app.perform_search();
                 }
                 KeyCode::Backspace => {
                     app.search_query.pop();
+                    app.perform_search();
+                }
+                KeyCode::Enter => {
+                    if let Some(selected) = app.list_state.selected() {
+                        if let Some(result) = app.search_results.get(selected) {
+                            match result.result_type {
+                                SearchResultType::Episode(series_index, episode_index) => {
+                                    app.app_mode = AppMode::Details(series_index, episode_index);
+                                    app.selected_tab = 0;
+                                    app.selected_series_tab = series_index;
+                                }
+                                SearchResultType::Movie(movie_index) => {
+                                    app.app_mode = AppMode::MovieDetails(movie_index);
+                                    app.selected_tab = 1;
+                                }
+                            }
+                            app.search_results.clear();
+                        }
+                    }
+                }
+                KeyCode::Down => {
+                    if let Some(selected) = app.list_state.selected() {
+                        if selected < app.search_results.len() - 1 {
+                            app.list_state.select(Some(selected + 1));
+                        }
+                    } else {
+                        app.list_state.select(Some(0));
+                    }
+                }
+                KeyCode::Up => {
+                    if let Some(selected) = app.list_state.selected() {
+                        if selected > 0 {
+                            app.list_state.select(Some(selected - 1));
+                        }
+                    }
                 }
                 _ => {}
             }
@@ -27,37 +64,29 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
             match key.code {
                 KeyCode::Char('q') => return Ok(false),
                 KeyCode::Tab => {
-                    app.selected_tab = (app.selected_tab + 1) % 3;
-                    app.app_mode = match app.selected_tab {
-                        0 => AppMode::EpisodesSeries(app.selected_series_tab),
-                        1 => AppMode::MoviesList,
-                        2 => AppMode::Characters,
-                        _ => app.app_mode.clone(),
-                    };
-                    app.reset_list_state_for_tab();
-                }
-                KeyCode::Left => {
-                    if app.selected_tab == 0 {
-                        app.selected_series_tab = if app.selected_series_tab > 0 {
-                            app.selected_series_tab - 1
-                        } else {
-                            app.guide.len().saturating_sub(1)
+                    if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
+                        app.selected_tab = (app.selected_tab + 1) % 3;
+                        app.app_mode = match app.selected_tab {
+                            0 => AppMode::EpisodesSeries(app.selected_series_tab),
+                            1 => AppMode::MoviesList,
+                            2 => AppMode::Characters,
+                            _ => app.app_mode.clone(),
                         };
-                        app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
-                        app.reset_list_state_for_tab();
-                    } else {
-                        app.selected_tab -= 1;
                         app.reset_list_state_for_tab();
                     }
                 }
-                KeyCode::Right => {
+                KeyCode::Left | KeyCode::Right => {
+                    if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
                     if app.selected_tab == 0 {
-                        app.selected_series_tab = (app.selected_series_tab + 1) % app.guide.len();
+                        let num_series = app.guide.len();
+                        if key.code == KeyCode::Left {
+                            app.selected_series_tab = (app.selected_series_tab + num_series - 1) % num_series;
+                        } else {
+                            app.selected_series_tab = (app.selected_series_tab + 1) % num_series;
+                        }
                         app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
                         app.reset_list_state_for_tab();
-                    } else {
-                        app.selected_tab += 1;
-                        app.reset_list_state_for_tab();
+                    }
                     }
                 }
                 KeyCode::Down => {
