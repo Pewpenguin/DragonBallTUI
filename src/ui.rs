@@ -20,12 +20,38 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
     draw_main_tabs(f, app, layout_chunks[0]);
 
-    match app.selected_tab {
-        0 => draw_episodes_tab(f, app, layout_chunks[1]),
-        1 => draw_movies_tab(f, app, layout_chunks[1]),
-        2 => draw_characters_tab(f, app, layout_chunks[1]),
-        _ => {}
+    match app.app_mode {
+        AppMode::Search => draw_search_tab(f, app, layout_chunks[1]),
+        _ => {
+            match app.selected_tab {
+                0 => draw_episodes_tab(f, app, layout_chunks[1]),
+                1 => draw_movies_tab(f, app, layout_chunks[1]),
+                2 => draw_characters_tab(f, app, layout_chunks[1]),
+                _ => {}
+            }
+        }
     }
+}
+
+// Add this new function to draw the search tab
+fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Rect) {
+    let search_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(1),
+        ].as_ref())
+        .split(area);
+
+    let search_input = Paragraph::new(app.search_query.as_ref())
+        .style(Style::default().fg(Color::Yellow))
+        .block(Block::default().borders(Borders::ALL).title("Search"));
+    f.render_widget(search_input, search_layout[0]);
+
+    let results_text = "Search results will be displayed here.";
+    let results = Paragraph::new(results_text)
+        .block(Block::default().borders(Borders::ALL).title("Results"));
+    f.render_widget(results, search_layout[1]);
 }
 
 fn draw_main_tabs<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Rect) {

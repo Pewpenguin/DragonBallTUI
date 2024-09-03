@@ -9,6 +9,7 @@ pub struct App {
     pub selected_tab: usize,
     pub selected_series_tab: usize,
     pub previous_tab: usize,
+    pub search_query: String,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -18,6 +19,7 @@ pub enum AppMode {
     Details(usize, usize),
     EpisodesSeries(usize),
     MovieDetails(usize),
+    Search,
 }
 
 impl App {
@@ -36,6 +38,7 @@ impl App {
             selected_tab: 0,
             selected_series_tab: 0,
             previous_tab: 0,
+            search_query: String::new(),
         })
     }
 
