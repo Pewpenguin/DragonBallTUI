@@ -11,6 +11,7 @@ pub struct App {
     pub previous_tab: usize,
     pub search_query: String,
     pub search_results: Vec<SearchResult>,
+    pub previous_mode: AppMode,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -21,6 +22,7 @@ pub enum AppMode {
     EpisodesSeries(usize),
     MovieDetails(usize),
     Search,
+    Help,
 }
 
 #[derive(Debug, Clone)]
@@ -53,6 +55,7 @@ impl App {
             previous_tab: 0,
             search_query: String::new(),
             search_results: Vec::new(),
+            previous_mode: AppMode::EpisodesSeries(0),
         })
     }
 

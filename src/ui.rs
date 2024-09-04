@@ -21,6 +21,7 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     draw_main_tabs(f, app, layout_chunks[0]);
 
     match app.app_mode {
+        AppMode::Help => draw_help_screen(f, layout_chunks[1]),
         AppMode::Search => draw_search_tab(f, app, layout_chunks[1]),
         _ => {
             match app.selected_tab {
@@ -224,4 +225,23 @@ fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layou
     let paragraph = Paragraph::new(characters_text)
         .block(Block::default().borders(Borders::ALL).title("Characters"));
     f.render_widget(paragraph, area);
+}
+
+fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {
+    let help_text = vec![
+        Spans::from("q: Quit the application"),
+        Spans::from("h: Toggle this help screen"),
+        Spans::from("Tab: Switch between main tabs"),
+        Spans::from("Left/Right: Navigate series tabs (in Episodes tab)"),
+        Spans::from("Up/Down: Navigate lists"),
+        Spans::from("Enter: View details of selected item"),
+        Spans::from("Esc: Go back / Exit search"),
+        Spans::from("s: Enter search mode"),
+    ];
+
+    let help_paragraph = Paragraph::new(help_text)
+        .block(Block::default().borders(Borders::ALL).title("Help"))
+        .wrap(tui::widgets::Wrap { trim: true });
+
+    f.render_widget(help_paragraph, area);
 }

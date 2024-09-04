@@ -3,6 +3,11 @@ use crate::app::{App, AppMode, SearchResultType};
 
 pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn std::error::Error>> {
     match app.app_mode {
+        AppMode::Help => {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Char('h') {
+                app.app_mode = app.previous_mode.clone();
+            }
+        }
         AppMode::Search => {
             match key.code {
                 KeyCode::Esc => {
@@ -63,6 +68,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
         _ => {
             match key.code {
                 KeyCode::Char('q') => return Ok(false),
+                KeyCode::Char('h') => {
+                    app.previous_mode = app.app_mode.clone();
+                    app.app_mode = AppMode::Help;
+                }
                 KeyCode::Tab => {
                     if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
                         app.selected_tab = (app.selected_tab + 1) % 3;
