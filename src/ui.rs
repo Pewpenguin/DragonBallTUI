@@ -148,15 +148,36 @@ fn draw_episode_details<B: Backend>(f: &mut Frame<B>, app: &App, series_index: u
         if let Some(episode) = series.episodes.get(episode_index) {
             let block = Block::default()
                 .borders(Borders::ALL)
-                .title(format!("Episode Details: {}", episode.title));
-            let details = format!(
-                "Episode Number: {}\nDescription: {}\nRelease Date: {}\nDuration: {}\nSaga: {}",
-                episode.episode_number,
-                episode.description,
-                episode.release_date,
-                episode.duration,
-                episode.saga
-            );
+                .title(Span::styled(
+                    format!(" Episode Details: {} ", episode.title),
+                    Style::default().add_modifier(Modifier::BOLD)
+                ))
+                .border_style(Style::default().fg(Color::Cyan));
+
+            let details = vec![
+                Spans::from(vec![
+                    Span::styled("Episode Number: ", Style::default().fg(Color::Yellow)),
+                    Span::raw(episode.episode_number.to_string()),
+                ]),
+                Spans::from(vec![
+                    Span::styled("Release Date: ", Style::default().fg(Color::Yellow)),
+                    Span::raw(&episode.release_date),
+                ]),
+                Spans::from(vec![
+                    Span::styled("Duration: ", Style::default().fg(Color::Yellow)),
+                    Span::raw(&episode.duration),
+                ]),
+                Spans::from(vec![
+                    Span::styled("Saga: ", Style::default().fg(Color::Yellow)),
+                    Span::raw(&episode.saga),
+                ]),
+                Spans::from(""),
+                Spans::from(vec![
+                    Span::styled("Description: ", Style::default().fg(Color::Yellow)),
+                ]),
+                Spans::from(Span::raw(&episode.description)),
+            ];
+
             let paragraph = Paragraph::new(details)
                 .block(block)
                 .wrap(tui::widgets::Wrap { trim: true });
@@ -197,18 +218,50 @@ fn draw_movie_details<B: Backend>(f: &mut Frame<B>, app: &App, movie_index: usiz
     if let Some(movie) = app.movies.get(movie_index) {
         let block = Block::default()
             .borders(Borders::ALL)
-            .title(format!("Movie Details: {}", movie.title));
-        let details = format!(
-            "Number: {}\nRelease Date: {}\nRuntime: {}\nDescription: {}\nDirector: {}\nGenres: {}\nTrivia: {}\nPlot Keywords: {}",
-            movie.number,
-            movie.release_date,
-            movie.runtime,
-            movie.description,
-            movie.director,
-            movie.genres.join(", "),
-            movie.trivia,
-            movie.plot_keywords.join(", ")
-        );
+            .title(Span::styled(
+                format!(" Movie Details: {} ", movie.title),
+                Style::default().add_modifier(Modifier::BOLD)
+            ))
+            .border_style(Style::default().fg(Color::Magenta));
+
+        let details = vec![
+            Spans::from(vec![
+                Span::styled("Number: ", Style::default().fg(Color::Yellow)),
+                Span::raw(movie.number.to_string()),
+            ]),
+            Spans::from(vec![
+                Span::styled("Release Date: ", Style::default().fg(Color::Yellow)),
+                Span::raw(&movie.release_date),
+            ]),
+            Spans::from(vec![
+                Span::styled("Runtime: ", Style::default().fg(Color::Yellow)),
+                Span::raw(&movie.runtime),
+            ]),
+            Spans::from(vec![
+                Span::styled("Director: ", Style::default().fg(Color::Yellow)),
+                Span::raw(&movie.director),
+            ]),
+            Spans::from(vec![
+                Span::styled("Genres: ", Style::default().fg(Color::Yellow)),
+                Span::raw(movie.genres.join(", ")),
+            ]),
+            Spans::from(""),
+            Spans::from(vec![
+                Span::styled("Description: ", Style::default().fg(Color::Yellow)),
+            ]),
+            Spans::from(Span::raw(&movie.description)),
+            Spans::from(""),
+            Spans::from(vec![
+                Span::styled("Trivia: ", Style::default().fg(Color::Yellow)),
+            ]),
+            Spans::from(Span::raw(&movie.trivia)),
+            Spans::from(""),
+            Spans::from(vec![
+                Span::styled("Plot Keywords: ", Style::default().fg(Color::Yellow)),
+                Span::raw(movie.plot_keywords.join(", ")),
+            ]),
+        ];
+
         let paragraph = Paragraph::new(details)
             .block(block)
             .wrap(tui::widgets::Wrap { trim: true });
@@ -228,20 +281,58 @@ fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layou
 }
 
 fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {
-    let help_text = vec![
-        Spans::from("q: Quit the application"),
-        Spans::from("h: Toggle this help screen"),
-        Spans::from("Tab: Switch between main tabs"),
-        Spans::from("Left/Right: Navigate series tabs (in Episodes tab)"),
-        Spans::from("Up/Down: Navigate lists"),
-        Spans::from("Enter: View details of selected item"),
-        Spans::from("Esc: Go back / Exit search"),
-        Spans::from("s: Enter search mode"),
+    let help_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(1),
+        ].as_ref())
+        .split(area);
+
+    let title = Paragraph::new("Help")
+        .style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD))
+        .alignment(tui::layout::Alignment::Center)
+        .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(Color::Cyan)));
+
+    f.render_widget(title, help_layout[0]);
+
+    let help_items = vec![
+        ("Navigation", vec![
+            ("Tab", "Switch between main tabs"),
+            ("Left/Right", "Navigate series tabs (in Episodes tab)"),
+            ("Up/Down", "Navigate lists"),
+            ("Enter", "View details of selected item"),
+            ("Esc", "Go back / Exit search"),
+        ]),
+        ("Actions", vec![
+            ("Q/q", "Quit the application"),
+            ("H/h", "Toggle this help screen"),
+            ("S/s", "Enter search mode"),
+        ]),
     ];
 
-    let help_paragraph = Paragraph::new(help_text)
-        .block(Block::default().borders(Borders::ALL).title("Help"))
+    let mut text = Vec::new();
+
+    for (section, items) in help_items {
+        text.push(Spans::from(Span::styled(
+            section,
+            Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+        )));
+        text.push(Spans::from(""));
+
+        for (key, description) in items {
+            text.push(Spans::from(vec![
+                Span::styled(format!("{:<12}", key), Style::default().fg(Color::Green)),
+                Span::raw(description),
+            ]));
+        }
+
+        text.push(Spans::from(""));
+    }
+
+    let help_paragraph = Paragraph::new(text)
+        .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(Color::Cyan)))
         .wrap(tui::widgets::Wrap { trim: true });
 
-    f.render_widget(help_paragraph, area);
+    f.render_widget(help_paragraph, help_layout[1]);
 }

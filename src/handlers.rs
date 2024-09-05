@@ -4,7 +4,7 @@ use crate::app::{App, AppMode, SearchResultType};
 pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn std::error::Error>> {
     match app.app_mode {
         AppMode::Help => {
-            if key.code == KeyCode::Esc || key.code == KeyCode::Char('h') {
+            if key.code == KeyCode::Esc || key.code == KeyCode::Char('H') || key.code == KeyCode::Char('h') {
                 app.app_mode = app.previous_mode.clone();
             }
         }
@@ -21,7 +21,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                     app.search_results.clear();
                 }
                 KeyCode::Char(c) => {
-                    app.search_query.push(c);
+                    app.search_query.push(c.to_lowercase().next().unwrap_or(c));
                     app.perform_search();
                 }
                 KeyCode::Backspace => {
@@ -67,10 +67,20 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
         }
         _ => {
             match key.code {
-                KeyCode::Char('q') => return Ok(false),
-                KeyCode::Char('h') => {
-                    app.previous_mode = app.app_mode.clone();
-                    app.app_mode = AppMode::Help;
+                KeyCode::Char(c) => {
+                    let lower_c = c.to_lowercase().next().unwrap_or(c);
+                    match lower_c {
+                        'q' => return Ok(false),
+                        'h' => {
+                            app.previous_mode = app.app_mode.clone();
+                            app.app_mode = AppMode::Help;
+                        }
+                        's' => {
+                            app.app_mode = AppMode::Search;
+                            app.search_query.clear();
+                        }
+                        _ => {}
+                    }
                 }
                 KeyCode::Tab => {
                     if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
@@ -86,16 +96,16 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 }
                 KeyCode::Left | KeyCode::Right => {
                     if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
-                    if app.selected_tab == 0 {
-                        let num_series = app.guide.len();
-                        if key.code == KeyCode::Left {
-                            app.selected_series_tab = (app.selected_series_tab + num_series - 1) % num_series;
-                        } else {
-                            app.selected_series_tab = (app.selected_series_tab + 1) % num_series;
+                        if app.selected_tab == 0 {
+                            let num_series = app.guide.len();
+                            if key.code == KeyCode::Left {
+                                app.selected_series_tab = (app.selected_series_tab + num_series - 1) % num_series;
+                            } else {
+                                app.selected_series_tab = (app.selected_series_tab + 1) % num_series;
+                            }
+                            app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
+                            app.reset_list_state_for_tab();
                         }
-                        app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
-                        app.reset_list_state_for_tab();
-                    }
                     }
                 }
                 KeyCode::Down => {
@@ -151,19 +161,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         _ => {}
                     }
                 }
-                KeyCode::Char('s') => {
-                    app.app_mode = AppMode::Search;
-                    app.search_query.clear();
-                }
-                _ => {
-                    if let AppMode::Search = app.app_mode {
-                        if let KeyCode::Char(c) = key.code {
-                            app.search_query.push(c);
-                        } else if let KeyCode::Backspace = key.code {
-                            app.search_query.pop();
-                        }
-                    }
-                }
+                _ => {}
             }
         }
     }
