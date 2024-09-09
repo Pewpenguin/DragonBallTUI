@@ -79,6 +79,20 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                             app.app_mode = AppMode::Search;
                             app.search_query.clear();
                         }
+                        'm' => {
+                            if app.selected_tab == 0 {
+                                app.toggle_episode_sort_method();
+                            } else if app.selected_tab == 1 {
+                                app.toggle_movie_sort_method();
+                            }
+                        }
+                        'o' => {
+                            if app.selected_tab == 0 {
+                                app.toggle_episode_sort_order();
+                            } else if app.selected_tab == 1 {
+                                app.toggle_movie_sort_order();
+                            }
+                        }
                         _ => {}
                     }
                 }

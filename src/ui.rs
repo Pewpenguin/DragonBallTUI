@@ -6,7 +6,7 @@ use tui::{
     widgets::{Block, Borders, List, ListItem, Paragraph, Tabs},
     Frame,
 };
-use crate::app::{App, AppMode, SearchResultType};
+use crate::app::{App, AppMode, SearchResultType, EpisodeSortMethod, SortOrder, MovieSortMethod};
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let size = f.size();
@@ -136,8 +136,25 @@ fn draw_episodes_list<B: Backend>(f: &mut Frame<B>, app: &mut App, series_index:
                 ep.title
             )))
             .collect();
+
+        let sort_method = match app.episode_sort_method {
+            EpisodeSortMethod::EpisodeNumber => "Ep#",
+            EpisodeSortMethod::Title => "Title",
+            EpisodeSortMethod::ReleaseDate => "Date",
+        };
+        let sort_order = match app.episode_sort_order {
+            SortOrder::Ascending => "↑",
+            SortOrder::Descending => "↓",
+        };
+        let sort_info = format!("[{} {}]", sort_method, sort_order);
+
+        let title = Spans::from(vec![
+            Span::styled("Episodes ", Style::default().fg(Color::Cyan)),
+            Span::styled(sort_info, Style::default().fg(Color::Yellow)),
+        ]);
+
         let list = List::new(items)
-            .block(Block::default().borders(Borders::ALL).title("Episodes"))
+            .block(Block::default().borders(Borders::ALL).title(title))
             .highlight_style(Style::default().bg(Color::Yellow));
         f.render_stateful_widget(list, area, &mut app.list_state);
     }
@@ -207,8 +224,24 @@ fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layo
         )))
         .collect();
     
+    let sort_method = match app.movie_sort_method {
+        MovieSortMethod::Number => "Num",
+        MovieSortMethod::Title => "Title",
+        MovieSortMethod::ReleaseDate => "Date",
+    };
+    let sort_order = match app.movie_sort_order {
+        SortOrder::Ascending => "↑",
+        SortOrder::Descending => "↓",
+    };
+    let sort_info = format!("[{} {}]", sort_method, sort_order);
+
+    let title = Spans::from(vec![
+        Span::styled("Movies ", Style::default().fg(Color::Magenta)),
+        Span::styled(sort_info, Style::default().fg(Color::Yellow)),
+    ]);
+
     let movies_list = List::new(movie_items)
-        .block(Block::default().borders(Borders::ALL).title("Movies"))
+        .block(Block::default().borders(Borders::ALL).title(title))
         .highlight_style(Style::default().bg(Color::Yellow));
 
     f.render_stateful_widget(movies_list, area, &mut app.list_state);
@@ -308,6 +341,10 @@ fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {
             ("Q/q", "Quit the application"),
             ("H/h", "Toggle this help screen"),
             ("S/s", "Enter search mode"),
+        ]),
+        ("Sorting", vec![
+            ("M/m", "Change sort method"),
+            ("O/o", "Toggle sort order"),
         ]),
     ];
 

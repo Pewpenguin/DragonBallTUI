@@ -8,6 +8,8 @@ A terminal-based application to explore the Dragon Ball series, including episod
 - View detailed information about each episode
 - Browse and view details of Dragon Ball movies
 - User-friendly terminal interface with keyboard navigation
+- Search functionality for episodes and movies
+- Sorting options for episodes and movies
 
 ## Installation
 
@@ -41,6 +43,10 @@ cargo run --release
 - Press `Enter` to view details of a selected episode or movie
 - Press `Esc` to go back from details view to list view
 - Press `q` to quit the application
+- Press `s` to enter search mode
+- Press `m` to change sort method
+- Press `o` to toggle sort order
+- Press `h` to view help screen
 
 ## Data Files
 
@@ -73,4 +79,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 - [ ] Implement the Characters tab functionality
 - [x] Add search functionality 
-- [ ] Implement sorting options 
+- [x] Implement sorting options 

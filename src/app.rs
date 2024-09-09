@@ -1,5 +1,24 @@
 use tui::widgets::ListState;
 use crate::data::{Series, Movie, load_guide_from_file, load_movies_from_file};
+#[derive(Debug, Clone, PartialEq)]
+pub enum SortOrder {
+    Ascending,
+    Descending,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum EpisodeSortMethod {
+    EpisodeNumber,
+    Title,
+    ReleaseDate,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum MovieSortMethod {
+    Number,
+    Title,
+    ReleaseDate,
+}
 
 pub struct App {
     pub guide: Vec<Series>,
@@ -12,6 +31,10 @@ pub struct App {
     pub search_query: String,
     pub search_results: Vec<SearchResult>,
     pub previous_mode: AppMode,
+    pub episode_sort_method: EpisodeSortMethod,
+    pub episode_sort_order: SortOrder,
+    pub movie_sort_method: MovieSortMethod,
+    pub movie_sort_order: SortOrder,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -56,6 +79,10 @@ impl App {
             search_query: String::new(),
             search_results: Vec::new(),
             previous_mode: AppMode::EpisodesSeries(0),
+            episode_sort_method: EpisodeSortMethod::EpisodeNumber,
+            episode_sort_order: SortOrder::Ascending,
+            movie_sort_method: MovieSortMethod::Number,
+            movie_sort_order: SortOrder::Ascending,
         })
     }
 
@@ -100,5 +127,70 @@ impl App {
                 });
             }
         }
+    }
+
+    
+    pub fn toggle_episode_sort_method(&mut self) {
+        self.episode_sort_method = match self.episode_sort_method {
+            EpisodeSortMethod::EpisodeNumber => EpisodeSortMethod::Title,
+            EpisodeSortMethod::Title => EpisodeSortMethod::ReleaseDate,
+            EpisodeSortMethod::ReleaseDate => EpisodeSortMethod::EpisodeNumber,
+        };
+        self.sort_episodes();
+    }
+
+    pub fn toggle_episode_sort_order(&mut self) {
+        self.episode_sort_order = match self.episode_sort_order {
+            SortOrder::Ascending => SortOrder::Descending,
+            SortOrder::Descending => SortOrder::Ascending,
+        };
+        self.sort_episodes();
+    }
+
+    pub fn toggle_movie_sort_method(&mut self) {
+        self.movie_sort_method = match self.movie_sort_method {
+            MovieSortMethod::Number => MovieSortMethod::Title,
+            MovieSortMethod::Title => MovieSortMethod::ReleaseDate,
+            MovieSortMethod::ReleaseDate => MovieSortMethod::Number,
+        };
+        self.sort_movies();
+    }
+
+    pub fn toggle_movie_sort_order(&mut self) {
+        self.movie_sort_order = match self.movie_sort_order {
+            SortOrder::Ascending => SortOrder::Descending,
+            SortOrder::Descending => SortOrder::Ascending,
+        };
+        self.sort_movies();
+    }
+
+    fn sort_episodes(&mut self) {
+        for series in &mut self.guide {
+            series.episodes.sort_by(|a, b| {
+                let cmp = match self.episode_sort_method {
+                    EpisodeSortMethod::EpisodeNumber => a.episode_number.cmp(&b.episode_number),
+                    EpisodeSortMethod::Title => a.title.cmp(&b.title),
+                    EpisodeSortMethod::ReleaseDate => a.release_date.cmp(&b.release_date),
+                };
+                match self.episode_sort_order {
+                    SortOrder::Ascending => cmp,
+                    SortOrder::Descending => cmp.reverse(),
+                }
+            });
+        }
+    }
+
+    fn sort_movies(&mut self) {
+        self.movies.sort_by(|a, b| {
+            let cmp = match self.movie_sort_method {
+                MovieSortMethod::Number => a.number.cmp(&b.number),
+                MovieSortMethod::Title => a.title.cmp(&b.title),
+                MovieSortMethod::ReleaseDate => a.release_date.cmp(&b.release_date),
+            };
+            match self.movie_sort_order {
+                SortOrder::Ascending => cmp,
+                SortOrder::Descending => cmp.reverse(),
+            }
+        });
     }
 }
