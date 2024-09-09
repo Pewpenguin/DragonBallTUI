@@ -1,4 +1,5 @@
 use tui::widgets::ListState;
+use chrono::NaiveDate; 
 use crate::data::{Series, Movie, load_guide_from_file, load_movies_from_file};
 #[derive(Debug, Clone, PartialEq)]
 pub enum SortOrder {
@@ -170,7 +171,11 @@ impl App {
                 let cmp = match self.episode_sort_method {
                     EpisodeSortMethod::EpisodeNumber => a.episode_number.cmp(&b.episode_number),
                     EpisodeSortMethod::Title => a.title.cmp(&b.title),
-                    EpisodeSortMethod::ReleaseDate => a.release_date.cmp(&b.release_date),
+                    EpisodeSortMethod::ReleaseDate => {
+                        let date_a = NaiveDate::parse_from_str(&a.release_date, "%B %d, %Y").unwrap_or_default();
+                        let date_b = NaiveDate::parse_from_str(&b.release_date, "%B %d, %Y").unwrap_or_default();
+                        date_a.cmp(&date_b)
+                    },
                 };
                 match self.episode_sort_order {
                     SortOrder::Ascending => cmp,
@@ -185,7 +190,11 @@ impl App {
             let cmp = match self.movie_sort_method {
                 MovieSortMethod::Number => a.number.cmp(&b.number),
                 MovieSortMethod::Title => a.title.cmp(&b.title),
-                MovieSortMethod::ReleaseDate => a.release_date.cmp(&b.release_date),
+                MovieSortMethod::ReleaseDate => {
+                    let date_a = NaiveDate::parse_from_str(&a.release_date, "%B %d, %Y").unwrap_or_default();
+                    let date_b = NaiveDate::parse_from_str(&b.release_date, "%B %d, %Y").unwrap_or_default();
+                    date_a.cmp(&date_b)
+                },
             };
             match self.movie_sort_order {
                 SortOrder::Ascending => cmp,
