@@ -44,8 +44,8 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
         .split(area);
 
     let search_input = Paragraph::new(app.search_query.as_ref())
-        .style(Style::default().fg(Color::Yellow))
-        .block(Block::default().borders(Borders::ALL).title("Search"));
+        .style(Style::default().fg(Color::LightCyan))
+        .block(Block::default().borders(Borders::ALL).title("Search").style(Style::default().fg(Color::White)));
     f.render_widget(search_input, search_layout[0]);
 
     let results: Vec<ListItem> = app.search_results.iter()
@@ -77,8 +77,8 @@ fn draw_main_tabs<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Re
     }).collect();
 
     let tabs = Tabs::new(spans)
-        .block(Block::default().borders(Borders::BOTTOM).title("Main Tabs"))
-        .style(Style::default().bg(Color::Black).fg(Color::White))
+        .block(Block::default().borders(Borders::BOTTOM).title("Main Tabs").style(Style::default().fg(Color::White)))
+        .style(Style::default().bg(Color::Black).fg(Color::Gray))
         .highlight_style(Style::default().bg(Color::Blue).fg(Color::White).add_modifier(Modifier::BOLD))
         .divider(Span::raw(" | "))
         .select(app.selected_tab);
@@ -149,8 +149,8 @@ fn draw_episodes_list<B: Backend>(f: &mut Frame<B>, app: &mut App, series_index:
         let sort_info = format!("[{} {}]", sort_method, sort_order);
 
         let title = Spans::from(vec![
-            Span::styled("Episodes ", Style::default().fg(Color::Cyan)),
-            Span::styled(sort_info, Style::default().fg(Color::Yellow)),
+            Span::styled("Episodes ", Style::default().fg(Color::LightCyan)),
+            Span::styled(sort_info, Style::default().fg(Color::LightYellow)),
         ]);
 
         let list = List::new(items)
@@ -241,8 +241,8 @@ fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layo
     ]);
 
     let movies_list = List::new(movie_items)
-        .block(Block::default().borders(Borders::ALL).title(title))
-        .highlight_style(Style::default().bg(Color::Yellow));
+        .block(Block::default().borders(Borders::ALL).title(title).style(Style::default().fg(Color::White)))
+        .highlight_style(Style::default().bg(Color::DarkGray).fg(Color::White));
 
     f.render_stateful_widget(movies_list, area, &mut app.list_state);
 }
@@ -253,9 +253,9 @@ fn draw_movie_details<B: Backend>(f: &mut Frame<B>, app: &App, movie_index: usiz
             .borders(Borders::ALL)
             .title(Span::styled(
                 format!(" Movie Details: {} ", movie.title),
-                Style::default().add_modifier(Modifier::BOLD)
+                Style::default().add_modifier(Modifier::BOLD).fg(Color::LightCyan)
             ))
-            .border_style(Style::default().fg(Color::Magenta));
+            .border_style(Style::default().fg(Color::Gray));
 
         let details = vec![
             Spans::from(vec![
