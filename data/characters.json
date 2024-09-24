@@ -1,0 +1,470 @@
+{
+    "characters": [
+      {
+        "name": "Goku",
+        "aliases": [
+          "Kakarot",
+          "Son Goku"
+        ],
+        "series": [
+          "Dragon Ball",
+          "Dragon Ball Z",
+          "Dragon Ball GT",
+          "Dragon Ball Super"
+        ],
+        "race": "Saiyan",
+        "powers": [
+          "Super Saiyan",
+          "Super Saiyan God",
+          "Super Saiyan Blue",
+          "Ultra Instinct",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Instantaneous Movement",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "The main protagonist of the Dragon Ball franchise, Goku is a Saiyan warrior who came to Earth as a baby. He is known for his incredible strength, determination, unwavering optimism, and his constant desire to get stronger. Despite his Saiyan heritage, Goku is incredibly kind-hearted and always strives to protect his friends and family. He is a master of martial arts and has trained under many powerful teachers, allowing him to reach incredible heights of power.",
+        "occupation": "Farmer, Martial Artist",
+        "family": [
+          "Bardock (father)",
+          "Gine (mother)",
+          "Raditz (brother)",
+          "Chi-Chi (wife)",
+          "Gohan (son)",
+          "Goten (son)",
+          "Pan (granddaughter)"
+        ],
+        "key_events": [
+          "Defeating Red Ribbon Army",
+          "Defeating Piccolo Daimao",
+          "Defeating Vegeta",
+          "Defeating Frieza",
+          "Defeating Cell",
+          "Defeating Majin Buu",
+          "Defeating Beerus",
+          "Defeating Jiren"
+        ]
+      },
+      {
+        "name": "Vegeta",
+        "aliases": [
+          "Prince Vegeta"
+        ],
+        "series": [
+          "Dragon Ball Z",
+          "Dragon Ball GT",
+          "Dragon Ball Super"
+        ],
+        "race": "Saiyan",
+        "powers": [
+          "Super Saiyan",
+          "Super Saiyan God",
+          "Super Saiyan Blue",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Instantaneous Movement",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "The proud prince of the Saiyan race, Vegeta is Goku's eternal rival. He is known for his arrogance, ambition, and powerful strength. Despite his initially antagonistic nature, Vegeta has developed a sense of loyalty to his adopted home, Earth, and his family. He is driven by a desire to become the strongest warrior in the universe and constantly strives to surpass Goku.",
+        "occupation": "Warrior, Prince",
+        "family": [
+          "King Vegeta (father)",
+          "Queen (mother)",
+          "Bulma (wife)",
+          "Trunks (son)",
+          "Bulla (daughter)"
+        ],
+        "key_events": [
+          "Invasion of Earth",
+          "Training with Goku",
+          "Becoming a Super Saiyan",
+          "Fighting against Cell",
+          "Fighting against Majin Buu",
+          "Becoming a Super Saiyan God",
+          "Joining the Tournament of Power"
+        ]
+      },
+      {
+        "name": "Piccolo",
+        "aliases": [
+          "Ma Junior",
+          "Demon King Piccolo"
+        ],
+        "series": [
+          "Dragon Ball",
+          "Dragon Ball Z",
+          "Dragon Ball GT",
+          "Dragon Ball Super"
+        ],
+        "race": "Namekian",
+        "powers": [
+          "Ki Manipulation",
+          "Flight",
+          "Regeneration",
+          "Special Beam Cannon",
+          "Namekian Fusion",
+          "Telekinesis",
+          "Energy Blast"
+        ],
+        "description": "A powerful Namekian warrior who initially served as an antagonist, Piccolo eventually becomes a valued ally and mentor to Goku and his friends.  Piccolo has a stoic personality and is known for his strength and wisdom.  He is devoted to protecting Earth and has become a father figure to Gohan.",
+        "occupation": "Warrior, Teacher",
+        "family": [
+          "Kami (previous incarnation)",
+          "Nail (ancestor)",
+          "Dende (successor)",
+          "Gohan (adopted son)"
+        ],
+        "key_events": [
+          "Defeating Goku",
+          "Fusing with Nail",
+          "Training Gohan",
+          "Fighting against Cell",
+          "Fighting against Majin Buu"
+        ]
+      },
+      {
+        "name": "Gohan",
+        "aliases": [
+          "Son Gohan"
+        ],
+        "series": [
+          "Dragon Ball Z",
+          "Dragon Ball GT",
+          "Dragon Ball Super"
+        ],
+        "race": "Saiyan",
+        "powers": [
+          "Super Saiyan",
+          "Super Saiyan 2",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "Goku's son, Gohan is a powerful Saiyan with a strong sense of justice and a penchant for studying. Initially reluctant to embrace his Saiyan heritage, Gohan eventually comes to terms with his power and becomes a formidable warrior.  Despite his strength, Gohan prioritizes his studies and family life.",
+        "occupation": "Student, Warrior",
+        "family": [
+          "Goku (father)",
+          "Chi-Chi (mother)",
+          "Videl (wife)",
+          "Pan (daughter)"
+        ],
+        "key_events": [
+          "Defeating Cell",
+          "Fighting against Majin Buu",
+          "Becoming a scholar"
+        ]
+      },
+      {
+        "name": "Frieza",
+        "aliases": [
+          "Lord Frieza",
+          "Freezer"
+        ],
+        "series": [
+          "Dragon Ball Z",
+          "Dragon Ball Super"
+        ],
+        "race": "Alien",
+        "powers": [
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Death Beam",
+          "Energy Blast",
+          "Martial Arts Mastery",
+          "Form Transformations"
+        ],
+        "description": "A ruthless and powerful space tyrant, Frieza is one of the most iconic villains in the Dragon Ball franchise. He is known for his cold-hearted nature, extreme power, and his incredible strength. Frieza is driven by an insatiable thirst for power and is willing to do whatever it takes to achieve his goals.",
+        "occupation": "Emperor, Tyrant",
+        "family": [
+          "King Cold (father)",
+          "Cooler (brother)"
+        ],
+        "key_events": [
+          "Annihilation of Planet Vegeta",
+          "Fighting against Goku",
+          "Defeat at the hands of Goku",
+          "Resurrection and battle against Goku"
+        ]
+      },
+      {
+        "name": "Cell",
+        "aliases": [
+          "Perfect Cell"
+        ],
+        "series": [
+          "Dragon Ball Z"
+        ],
+        "race": "Bio-Android",
+        "powers": [
+          "Ki Manipulation",
+          "Flight",
+          "Regeneration",
+          "Energy Blast",
+          "Martial Arts Mastery",
+          "Form Transformations",
+          "Absorption"
+        ],
+        "description": "A bio-engineered android created by Dr. Gero, Cell is a powerful and cunning antagonist who seeks to absorb the energy of other fighters to achieve his perfect form.  Cell is a ruthless and arrogant fighter who enjoys tormenting his opponents and reveling in his power.",
+        "occupation": "Android, Killer",
+        "family": [
+          "Dr. Gero (creator)"
+        ],
+        "key_events": [
+          "Absorption of Androids 17 and 18",
+          "Defeating Trunks",
+          "Fighting against Goku",
+          "Defeat at the hands of Gohan"
+        ]
+      },
+      {
+        "name": "Majin Buu",
+        "aliases": [
+          "Buu"
+        ],
+        "series": [
+          "Dragon Ball Z"
+        ],
+        "race": "Majin",
+        "powers": [
+          "Ki Manipulation",
+          "Flight",
+          "Regeneration",
+          "Energy Blast",
+          "Magic",
+          "Form Transformations",
+          "Absorption"
+        ],
+        "description": "A powerful and playful creature of pure energy, Majin Buu is an unpredictable and destructive antagonist who can absorb other beings to increase his power.  Buu is known for his childlike nature and his tendency to act on his impulses.  He is often unaware of the consequences of his actions, leading to widespread destruction.",
+        "occupation": "Majin, Destroyer",
+        "family": [
+          "Kid Buu (original form)",
+          "Good Buu (split personality)"
+        ],
+        "key_events": [
+          "Release by Babidi",
+          "Terrorizing the Earth",
+          "Splitting into Good and Evil Buu",
+          "Defeat at the hands of Goku"
+        ]
+      },
+      {
+        "name": "Broly",
+        "aliases": [
+          "Legendary Super Saiyan"
+        ],
+        "series": [
+          "Dragon Ball Z",
+          "Dragon Ball Super",
+          "Dragon Ball Super: Broly"
+        ],
+        "race": "Saiyan",
+        "powers": [
+          "Super Saiyan",
+          "Super Saiyan Legendary",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "A legendary Saiyan warrior with immense power, Broly is known for his overwhelming strength and uncontrollable rage.  Broly's power is said to surpass even that of a Super Saiyan God, making him a formidable opponent for even the strongest warriors. His rage is triggered by the presence of Goku, resulting in a deep hatred and an insatiable desire for vengeance.",
+        "occupation": "Warrior",
+        "family": [
+          "Paragus (father)"
+        ],
+        "key_events": [
+          "Confrontation with Goku on Planet Vegeta",
+          "Resurrection and battle against Goku",
+          "Fusion with Gogeta"
+        ]
+      },
+      {
+        "name": "Beerus",
+        "aliases": [
+          "God of Destruction"
+        ],
+        "series": [
+          "Dragon Ball Super"
+        ],
+        "race": "God of Destruction",
+        "powers": [
+          "Hakai",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Destruction"
+        ],
+        "description": "The God of Destruction of Universe 7, Beerus is a powerful and enigmatic deity who enjoys challenging strong fighters.  Beerus has a playful yet dangerous personality, often using his power for his own amusement.  He is known for his love of food and his desire to find worthy opponents.",
+        "occupation": "God of Destruction",
+        "family": [
+          "Whis (attendant)"
+        ],
+        "key_events": [
+          "Awakening and search for the Super Saiyan God",
+          "Battle with Goku",
+          "Becoming allies with Goku"
+        ]
+      },
+      {
+        "name": "Whis",
+        "aliases": [
+          "Angel"
+        ],
+        "series": [
+          "Dragon Ball Super"
+        ],
+        "race": "Angel",
+        "powers": [
+          "Time Manipulation",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Healing"
+        ],
+        "description": "Beerus's loyal attendant and mentor, Whis is an angel with immense power and wisdom.  Whis is calm and collected, often observing events with a detached amusement.  He is a skilled martial artist and possesses a vast understanding of the universe.",
+        "occupation": "Angel, Mentor",
+        "family": [
+          "Vados (sister)"
+        ],
+        "key_events": [
+          "Training Goku and Vegeta",
+          "Helping Goku become a Super Saiyan God",
+          "Participating in the Tournament of Power"
+        ]
+      },
+      {
+        "name": "Jiren",
+        "aliases": [
+          "Pride Trooper"
+        ],
+        "series": [
+          "Dragon Ball Super"
+        ],
+        "race": "Unknown",
+        "powers": [
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "A powerful warrior from Universe 11, Jiren is known for his stoic nature and his incredible strength. Jiren is a master of martial arts and possesses immense power, even surpassing that of a God of Destruction. He is driven by a strong sense of justice and a desire to protect the innocent.",
+        "occupation": "Pride Trooper",
+        "family": [
+          "Unknown"
+        ],
+        "key_events": [
+          "Participating in the Tournament of Power",
+          "Battle with Goku",
+          "Losing to Goku in the Tournament of Power"
+        ]
+      },
+      {
+        "name": "Trunks",
+        "aliases": [
+          "Future Trunks"
+        ],
+        "series": [
+          "Dragon Ball Z",
+          "Dragon Ball Super"
+        ],
+        "race": "Saiyan",
+        "powers": [
+          "Super Saiyan",
+          "Super Saiyan 2",
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "Vegeta and Bulma's son from an alternate future, Trunks is a powerful Saiyan who travels to the past to warn Goku and his friends about the coming threat of the Androids.  Trunks is a determined and courageous warrior who is willing to fight for what he believes in, even when faced with seemingly insurmountable odds.",
+        "occupation": "Warrior, Time Traveler",
+        "family": [
+          "Vegeta (father)",
+          "Bulma (mother)",
+          "Future Bulma (mother)"
+        ],
+        "key_events": [
+          "Traveling to the past to warn Goku",
+          "Fighting against the Androids",
+          "Fighting against Cell",
+          "Fighting against Zamasu"
+        ]
+      },
+      {
+        "name": "Bulma",
+        "aliases": [
+          "Dr. Bulma"
+        ],
+        "series": [
+          "Dragon Ball",
+          "Dragon Ball Z",
+          "Dragon Ball GT",
+          "Dragon Ball Super"
+        ],
+        "race": "Human",
+        "powers": [
+          "Inventions",
+          "Scientific Knowledge"
+        ],
+        "description": "A brilliant scientist and inventor, Bulma is a key figure in the Dragon Ball franchise.  She is known for her intelligence, determination, and her ability to create advanced technology. Bulma is a vital member of Goku's group and often provides critical support during their battles against powerful enemies.",
+        "occupation": "Scientist, Inventor",
+        "family": [
+          "Dr. Brief (father)",
+          "Dr. Brief (mother)",
+          "Vegeta (husband)",
+          "Trunks (son)",
+          "Bulla (daughter)"
+        ],
+        "key_events": [
+          "Finding the Dragon Balls",
+          "Creating the Dragon Radar",
+          "Developing technology to aid Goku and his friends",
+          "Raising Trunks"
+        ]
+      },
+      {
+        "name": "Krillin",
+        "aliases": [
+          "Krillin"
+        ],
+        "series": [
+          "Dragon Ball",
+          "Dragon Ball Z",
+          "Dragon Ball GT",
+          "Dragon Ball Super"
+        ],
+        "race": "Human",
+        "powers": [
+          "Ki Manipulation",
+          "Flight",
+          "Telekinesis",
+          "Energy Blast",
+          "Martial Arts Mastery"
+        ],
+        "description": "Goku's best friend and a talented martial artist, Krillin is a loyal and dedicated warrior who always stands by his friends.  Krillin is known for his kind-hearted nature and his determination to protect the innocent, even though he lacks the raw power of some of his allies.",
+        "occupation": "Martial Artist",
+        "family": [
+          "Marron (daughter)",
+          "Android 18 (wife)"
+        ],
+        "key_events": [
+          "Joining Goku's team",
+          "Fighting alongside Goku",
+          "Fighting against Frieza",
+          "Fighting against Cell"
+        ]
+      }
+    ]
+  }
+  
