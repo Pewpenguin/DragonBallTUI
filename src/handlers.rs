@@ -1,23 +1,26 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use crate::app::{App, AppMode, SearchResultType};
 
+fn app_mode(app: &mut App) {
+    app.app_mode = match app.selected_tab {
+        0 => AppMode::EpisodesSeries(app.selected_series_tab),
+        1 => AppMode::MoviesList,
+        2 => AppMode::Characters,
+        _ => app.app_mode.clone(),
+    };
+}
+
 pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn std::error::Error>> {
     match app.app_mode {
         AppMode::Help => {
-            if key.code == KeyCode::Esc || key.code == KeyCode::Char('H') || key.code == KeyCode::Char('h') {
+            if matches!(key.code, KeyCode::Esc | KeyCode::Char('H') | KeyCode::Char('h')) {
                 app.app_mode = app.previous_mode.clone();
             }
         }
         AppMode::Search => {
             match key.code {
                 KeyCode::Esc => {
-                    // Exit search mode
-                    app.app_mode = match app.selected_tab {
-                        0 => AppMode::EpisodesSeries(app.selected_series_tab),
-                        1 => AppMode::MoviesList,
-                        2 => AppMode::Characters,
-                        _ => app.app_mode.clone(),
-                    };
+                    app_mode(app);
                     app.search_results.clear();
                 }
                 KeyCode::Char(c) => {
@@ -99,12 +102,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 KeyCode::Tab => {
                     if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
                         app.selected_tab = (app.selected_tab + 1) % 3;
-                        app.app_mode = match app.selected_tab {
-                            0 => AppMode::EpisodesSeries(app.selected_series_tab),
-                            1 => AppMode::MoviesList,
-                            2 => AppMode::Characters,
-                            _ => app.app_mode.clone(),
-                        };
+                        app_mode(app);
                         app.reset_list_state_for_tab();
                     }
                 }
@@ -112,11 +110,11 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                     if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
                         if app.selected_tab == 0 {
                             let num_series = app.guide.len();
-                            if key.code == KeyCode::Left {
-                                app.selected_series_tab = (app.selected_series_tab + num_series - 1) % num_series;
+                            app.selected_series_tab = if key.code == KeyCode::Left {
+                                (app.selected_series_tab + num_series - 1) % num_series
                             } else {
-                                app.selected_series_tab = (app.selected_series_tab + 1) % num_series;
-                            }
+                                (app.selected_series_tab + 1) % num_series
+                            };
                             app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
                             app.reset_list_state_for_tab();
                         }
@@ -150,12 +148,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                             app.app_mode = AppMode::MoviesList;
                         }
                         AppMode::Search => {
-                            app.app_mode = match app.selected_tab {
-                                0 => AppMode::EpisodesSeries(app.selected_series_tab),
-                                1 => AppMode::MoviesList,
-                                2 => AppMode::Characters,
-                                _ => app.app_mode.clone(),
-                            };
+                            app_mode(app);
                         }
                         _ => {}
                     }
