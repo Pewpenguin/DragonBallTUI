@@ -32,42 +32,38 @@ pub struct Movie {
     pub plot_keywords: Vec<String>,
 }
 
-pub fn load_guide_from_file(file_path: &str) -> Result<Vec<Series>, Box<dyn std::error::Error>> {
+fn read_file_content(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     let path = Path::new(file_path);
     if !path.exists() {
         return Err(From::from(format!("File not found: {}", file_path)));
     }
+    fs::read_to_string(path).map_err(|e| e.into())
+}
 
-    let file_content = fs::read_to_string(path)?;
-    let guide: Vec<Series> = serde_json::from_str(&file_content)?;
-    Ok(guide)
+fn write_file_content(file_path: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let path = Path::new(file_path);
+    let mut file = fs::File::create(path)?;
+    file.write_all(content.as_bytes()).map_err(|e| e.into())
+}
+
+pub fn load_guide_from_file(file_path: &str) -> Result<Vec<Series>, Box<dyn std::error::Error>> {
+    let file_content = read_file_content(file_path)?;
+    serde_json::from_str(&file_content).map_err(|e| e.into())
 }
 
 #[allow(dead_code)]
-pub fn save_guide_to_file(guide: &Vec<Series>, file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new(file_path);
-    let file_content = serde_json::to_string_pretty(&guide)?;
-    let mut file = fs::File::create(path)?;
-    file.write_all(file_content.as_bytes())?;
-    Ok(())
+pub fn save_guide_to_file(guide: &[Series], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let file_content = serde_json::to_string_pretty(guide)?;
+    write_file_content(file_path, &file_content)
 }
 
 pub fn load_movies_from_file(file_path: &str) -> Result<Vec<Movie>, Box<dyn std::error::Error>> {
-    let path = Path::new(file_path);
-    if !path.exists() {
-        return Err(From::from(format!("File not found: {}", file_path)));
-    }
-
-    let file_content = fs::read_to_string(path)?;
-    let movies: Vec<Movie> = serde_json::from_str(&file_content)?;
-    Ok(movies)
+    let file_content = read_file_content(file_path)?;
+    serde_json::from_str(&file_content).map_err(|e| e.into())
 }
 
 #[allow(dead_code)]
-pub fn save_movies_to_file(movies: &Vec<Movie>, file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new(file_path);
-    let file_content = serde_json::to_string_pretty(&movies)?;
-    let mut file = fs::File::create(path)?;
-    file.write_all(file_content.as_bytes())?;
-    Ok(())
+pub fn save_movies_to_file(movies: &[Movie], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let file_content = serde_json::to_string_pretty(movies)?;
+    write_file_content(file_path, &file_content)
 }

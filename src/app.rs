@@ -165,6 +165,10 @@ impl App {
         self.sort_movies();
     }
 
+    fn parse_date(date_str: &str) -> Option<NaiveDate> {
+        NaiveDate::parse_from_str(date_str, "%B %d, %Y").ok()
+    }
+
     fn sort_episodes(&mut self) {
         for series in &mut self.guide {
             series.episodes.sort_by(|a, b| {
@@ -172,8 +176,8 @@ impl App {
                     EpisodeSortMethod::EpisodeNumber => a.episode_number.cmp(&b.episode_number),
                     EpisodeSortMethod::Title => a.title.cmp(&b.title),
                     EpisodeSortMethod::ReleaseDate => {
-                        let date_a = NaiveDate::parse_from_str(&a.release_date, "%B %d, %Y").unwrap_or_default();
-                        let date_b = NaiveDate::parse_from_str(&b.release_date, "%B %d, %Y").unwrap_or_default();
+                        let date_a = Self::parse_date(&a.release_date);
+                        let date_b = Self::parse_date(&b.release_date);
                         date_a.cmp(&date_b)
                     },
                 };
@@ -191,8 +195,8 @@ impl App {
                 MovieSortMethod::Number => a.number.cmp(&b.number),
                 MovieSortMethod::Title => a.title.cmp(&b.title),
                 MovieSortMethod::ReleaseDate => {
-                    let date_a = NaiveDate::parse_from_str(&a.release_date, "%B %d, %Y").unwrap_or_default();
-                    let date_b = NaiveDate::parse_from_str(&b.release_date, "%B %d, %Y").unwrap_or_default();
+                    let date_a = Self::parse_date(&a.release_date);
+                    let date_b = Self::parse_date(&b.release_date);
                     date_a.cmp(&date_b)
                 },
             };
