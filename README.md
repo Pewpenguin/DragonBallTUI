@@ -1,15 +1,16 @@
 # DragonBallTUI
  
-A terminal-based application to explore the Dragon Ball series, including episodes and movies.
+A terminal-based application to explore the Dragon Ball series, including episodes, movies, and characters.
 
 ## Features
 
 - Browse episodes by series (Dragon Ball, Dragon Ball Z, etc.)
 - View detailed information about each episode
 - Browse and view details of Dragon Ball movies
+- Browse and view details of Dragon Ball characters
 - User-friendly terminal interface with keyboard navigation
-- Search functionality for episodes and movies
-- Sorting options for episodes and movies
+- Search functionality for episodes, movies, and characters
+- Sorting options for episodes, movies, and characters
 
 ## Installation
 
@@ -39,8 +40,8 @@ cargo run --release
 
 - Use `Tab` to switch between Episodes, Movies, and Characters tabs
 - Use `Left` and `Right` arrow keys to navigate between different series in the Episodes tab
-- Use `Up` and `Down` arrow keys to navigate through episodes or movies
-- Press `Enter` to view details of a selected episode or movie
+- Use `Up` and `Down` arrow keys to navigate through episodes, movies, or characters
+- Press `Enter` to view details of a selected episode, movie, or character
 - Press `Esc` to go back from details view to list view
 - Press `q` to quit the application
 - Press `s` to enter search mode
@@ -50,16 +51,17 @@ cargo run --release
 
 ## Data Files
 
-The application uses two JSON files to store data:
+The application uses three JSON files to store data:
 
 - `episodes.json`: Contains information about all episodes
 - `movies.json`: Contains information about all movies
+- `characters.json`: Contains information about all characters
 
 If these files don't exist, the application will create them with default data.
 
 ## Customization
 
-You can modify the `episodes.json` and `movies.json` files to add, remove, or update information about episodes and movies.
+You can modify the `episodes.json`, `movies.json`, and `characters.json` files to add, remove, or update information about episodes, movies, and characters.
 
 ## Dependencies
 
@@ -77,6 +79,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## TODO
 
-- [ ] Implement the Characters tab functionality
+- [x] Implement the Characters tab functionality
 - [x] Add search functionality 
 - [x] Implement sorting options 
