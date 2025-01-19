@@ -1,6 +1,6 @@
 use tui::widgets::ListState;
 use chrono::NaiveDate; 
-use crate::data::{Series, Movie, load_guide_from_file, load_movies_from_file};
+use crate::data::{Series, Movie, load_guide_from_file, load_movies_from_file, Character, load_characters_from_file};
 #[derive(Debug, Clone, PartialEq)]
 pub enum SortOrder {
     Ascending,
@@ -36,6 +36,8 @@ pub struct App {
     pub episode_sort_order: SortOrder,
     pub movie_sort_method: MovieSortMethod,
     pub movie_sort_order: SortOrder,
+    pub characters: Vec<Character>,
+    pub character_sort_order: SortOrder,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -45,6 +47,7 @@ pub enum AppMode {
     Details(usize, usize),
     EpisodesSeries(usize),
     MovieDetails(usize),
+    CharacterDetails(usize),
     Search,
     Help,
 }
@@ -65,6 +68,7 @@ impl App {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let guide = load_guide_from_file("data/episodes.json")?;
         let movies = load_movies_from_file("data/movies.json")?;
+        let characters = load_characters_from_file("data/characters.json")?;
 
         let mut list_state = ListState::default();
         list_state.select(Some(0));
@@ -84,6 +88,8 @@ impl App {
             episode_sort_order: SortOrder::Ascending,
             movie_sort_method: MovieSortMethod::Number,
             movie_sort_order: SortOrder::Ascending,
+            characters,
+            character_sort_order: SortOrder::Ascending,
         })
     }
 
@@ -96,6 +102,11 @@ impl App {
             }
             1 => {
                 if !self.movies.is_empty() {
+                    self.list_state.select(Some(0));
+                }
+            }
+            2 => {
+                if !self.characters.is_empty() {
                     self.list_state.select(Some(0));
                 }
             }
@@ -165,6 +176,14 @@ impl App {
         self.sort_movies();
     }
 
+    pub fn toggle_character_sort_order(&mut self) {
+        self.character_sort_order = match self.character_sort_order {
+            SortOrder::Ascending => SortOrder::Descending,
+            SortOrder::Descending => SortOrder::Ascending,
+        };
+        self.sort_characters();
+    }
+
     fn parse_date(date_str: &str) -> Option<NaiveDate> {
         NaiveDate::parse_from_str(date_str, "%B %d, %Y").ok()
     }
@@ -201,6 +220,16 @@ impl App {
                 },
             };
             match self.movie_sort_order {
+                SortOrder::Ascending => cmp,
+                SortOrder::Descending => cmp.reverse(),
+            }
+        });
+    }
+
+    fn sort_characters(&mut self) {
+        self.characters.sort_by(|a, b| {
+            let cmp = a.name.cmp(&b.name);
+            match self.character_sort_order {
                 SortOrder::Ascending => cmp,
                 SortOrder::Descending => cmp.reverse(),
             }

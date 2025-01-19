@@ -94,6 +94,8 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                                 app.toggle_episode_sort_order();
                             } else if app.selected_tab == 1 {
                                 app.toggle_movie_sort_order();
+                            } else if app.selected_tab == 2 {
+                                app.toggle_character_sort_order();
                             }
                         }
                         _ => {}
@@ -107,17 +109,15 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                     }
                 }
                 KeyCode::Left | KeyCode::Right => {
-                    if !matches!(app.app_mode, AppMode::Details(_, _) | AppMode::MovieDetails(_)) {
-                        if app.selected_tab == 0 {
-                            let num_series = app.guide.len();
-                            app.selected_series_tab = if key.code == KeyCode::Left {
-                                (app.selected_series_tab + num_series - 1) % num_series
-                            } else {
-                                (app.selected_series_tab + 1) % num_series
-                            };
-                            app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
-                            app.reset_list_state_for_tab();
-                        }
+                    if app.selected_tab == 0 {
+                        let num_series = app.guide.len();
+                        app.selected_series_tab = if key.code == KeyCode::Left {
+                            (app.selected_series_tab + num_series - 1) % num_series
+                        } else {
+                            (app.selected_series_tab + 1) % num_series
+                        };
+                        app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
+                        app.reset_list_state_for_tab();
                     }
                 }
                 KeyCode::Down => {
@@ -125,6 +125,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         let count = match app.selected_tab {
                             0 => app.guide[app.selected_series_tab].episodes.len(),
                             1 => app.movies.len(),
+                            2 => app.characters.len(),
                             _ => 0,
                         };
                         if selected < count - 1 {
@@ -147,6 +148,9 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         AppMode::MovieDetails(_) => {
                             app.app_mode = AppMode::MoviesList;
                         }
+                        AppMode::CharacterDetails(_) => {
+                            app.app_mode = AppMode::Characters;
+                        }
                         AppMode::Search => {
                             app_mode(app);
                         }
@@ -163,6 +167,11 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         AppMode::MoviesList => {
                             if let Some(movie_index) = app.list_state.selected() {
                                 app.app_mode = AppMode::MovieDetails(movie_index);
+                            }
+                        }
+                        AppMode::Characters => {
+                            if let Some(character_index) = app.list_state.selected() {
+                                app.app_mode = AppMode::CharacterDetails(character_index);
                             }
                         }
                         _ => {}

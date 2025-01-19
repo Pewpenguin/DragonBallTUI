@@ -23,6 +23,7 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     match app.app_mode {
         AppMode::Help => draw_help_screen(f, layout_chunks[1]),
         AppMode::Search => draw_search_tab(f, app, layout_chunks[1]),
+        AppMode::CharacterDetails(character_index) => draw_character_details(f, app, character_index, layout_chunks[1]),
         _ => {
             match app.selected_tab {
                 0 => draw_episodes_tab(f, app, layout_chunks[1]),
@@ -302,15 +303,76 @@ fn draw_movie_details<B: Backend>(f: &mut Frame<B>, app: &App, movie_index: usiz
     }
 }
 
-fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Rect) {
-    let characters_text = match app.app_mode {
-        AppMode::Characters => "Characters details go here.",
-        _ => "",
-    };
+fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
+    let character_items: Vec<_> = app.characters.iter().enumerate()
+        .map(|(i, character)| ListItem::new(format!(
+            "{}. {}", 
+            i + 1,
+            character.name
+        )))
+        .collect();
 
-    let paragraph = Paragraph::new(characters_text)
-        .block(Block::default().borders(Borders::ALL).title("Characters"));
-    f.render_widget(paragraph, area);
+    let sort_order = match app.character_sort_order {
+        SortOrder::Ascending => "↑",
+        SortOrder::Descending => "↓",
+    };
+    let sort_info = format!("[Name {}]", sort_order);
+
+    let title = Spans::from(vec![
+        Span::styled("Characters ", Style::default().fg(Color::Green)),
+        Span::styled(sort_info, Style::default().fg(Color::Yellow)),
+    ]);
+
+    let characters_list = List::new(character_items)
+        .block(Block::default().borders(Borders::ALL).title(title).style(Style::default().fg(Color::White)))
+        .highlight_style(Style::default().bg(Color::Yellow).fg(Color::Black));
+
+    f.render_stateful_widget(characters_list, area, &mut app.list_state);
+}
+
+fn draw_character_details<B: Backend>(f: &mut Frame<B>, app: &App, character_index: usize, area: tui::layout::Rect) {
+    if let Some(character) = app.characters.get(character_index) {
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(
+                format!(" Character Details: {} ", character.name),
+                Style::default().add_modifier(Modifier::BOLD).fg(Color::LightCyan)
+            ))
+            .border_style(Style::default().fg(Color::Gray));
+
+        let details = vec![
+            Spans::from(vec![
+                Span::styled("Aliases: ", Style::default().fg(Color::Yellow)),
+                Span::raw(character.aliases.join(", ")),
+            ]),
+            Spans::from(vec![
+                Span::styled("Race: ", Style::default().fg(Color::Yellow)),
+                Span::raw(&character.race),
+            ]),
+            Spans::from(vec![
+                Span::styled("Powers: ", Style::default().fg(Color::Yellow)),
+                Span::raw(character.powers.join(", ")),
+            ]),
+            Spans::from(vec![
+                Span::styled("Occupation: ", Style::default().fg(Color::Yellow)),
+                Span::raw(&character.occupation),
+            ]),
+            Spans::from(vec![
+                Span::styled("Description: ", Style::default().fg(Color::Yellow)),
+            ]),
+            Spans::from(Span::raw(&character.description)),
+            Spans::from(""),
+            Spans::from(vec![
+                Span::styled("Key Events: ", Style::default().fg(Color::Yellow)),
+                Span::raw(character.key_events.join(", ")),
+            ]),
+        ];
+
+        let paragraph = Paragraph::new(details)
+            .block(block)
+            .wrap(tui::widgets::Wrap { trim: true });
+        f.render_widget(paragraph, area);
+    }
 }
 
 fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {

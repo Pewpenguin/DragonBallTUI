@@ -32,6 +32,19 @@ pub struct Movie {
     pub plot_keywords: Vec<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Character {
+    pub name: String,
+    pub aliases: Vec<String>,
+    pub description: String,
+    pub series: Vec<String>,
+    pub race: String,
+    pub powers: Vec<String>,
+    pub occupation: String,
+    pub family: Vec<String>,
+    pub key_events: Vec<String>,
+}
+
 fn read_file_content(file_path: &str) -> Result<String, Box<dyn std::error::Error>> {
     let path = Path::new(file_path);
     if !path.exists() {
@@ -65,5 +78,17 @@ pub fn load_movies_from_file(file_path: &str) -> Result<Vec<Movie>, Box<dyn std:
 #[allow(dead_code)]
 pub fn save_movies_to_file(movies: &[Movie], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let file_content = serde_json::to_string_pretty(movies)?;
+    write_file_content(file_path, &file_content)
+}
+
+#[allow(dead_code)]
+pub fn load_characters_from_file(file_path: &str) -> Result<Vec<Character>, Box<dyn std::error::Error>> {
+    let file_content = read_file_content(file_path)?;
+    serde_json::from_str(&file_content).map_err(|e| e.into())
+}
+
+#[allow(dead_code)]
+pub fn save_characters_to_file(characters: &[Character], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let file_content = serde_json::to_string_pretty(characters)?;
     write_file_content(file_path, &file_content)
 }
