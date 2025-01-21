@@ -62,6 +62,7 @@ pub struct SearchResult {
 pub enum SearchResultType {
     Episode(usize, usize), // (series_index, episode_index)
     Movie(usize),          // movie_index
+    Character(usize),       // character_index
 }
 
 impl App {
@@ -118,26 +119,40 @@ impl App {
         self.search_results.clear();
         let query = self.search_query.to_lowercase();
 
-        // Search episodes
-        for (series_index, series) in self.guide.iter().enumerate() {
-            for (episode_index, episode) in series.episodes.iter().enumerate() {
-                if episode.title.to_lowercase().contains(&query) || episode.description.to_lowercase().contains(&query) {
-                    self.search_results.push(SearchResult {
-                        result_type: SearchResultType::Episode(series_index, episode_index),
-                        title: format!("{} - {}", series.series, episode.title),
-                    });
+        match self.selected_tab {
+            0 => { // Episodes
+                for (series_index, series) in self.guide.iter().enumerate() {
+                    for (episode_index, episode) in series.episodes.iter().enumerate() {
+                        if episode.title.to_lowercase().contains(&query) {
+                            self.search_results.push(SearchResult {
+                                title: episode.title.clone(),
+                                result_type: SearchResultType::Episode(series_index, episode_index),
+                            });
+                        }
+                    }
                 }
             }
-        }
-
-        // Search movies
-        for (movie_index, movie) in self.movies.iter().enumerate() {
-            if movie.title.to_lowercase().contains(&query) || movie.description.to_lowercase().contains(&query) {
-                self.search_results.push(SearchResult {
-                    result_type: SearchResultType::Movie(movie_index),
-                    title: movie.title.clone(),
-                });
+            1 => { // Movies
+                for (movie_index, movie) in self.movies.iter().enumerate() {
+                    if movie.title.to_lowercase().contains(&query) {
+                        self.search_results.push(SearchResult {
+                            title: movie.title.clone(),
+                            result_type: SearchResultType::Movie(movie_index),
+                        });
+                    }
+                }
             }
+            2 => { // Characters
+                for (character_index, character) in self.characters.iter().enumerate() {
+                    if character.name.to_lowercase().contains(&query) {
+                        self.search_results.push(SearchResult {
+                            title: character.name.clone(),
+                            result_type: SearchResultType::Character(character_index),
+                        });
+                    }
+                }
+            }
+            _ => {}
         }
     }
 

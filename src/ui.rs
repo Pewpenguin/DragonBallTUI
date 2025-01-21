@@ -52,12 +52,13 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
     let results: Vec<ListItem> = app.search_results.iter()
         .map(|result| {
             let result_type = match result.result_type {
-                SearchResultType::Episode(_, _) => "Episode",
-                SearchResultType::Movie(_) => "Movie",
+                SearchResultType::Episode(_, _) => "[Episode]",
+                SearchResultType::Movie(_) => "[Movie]",
+                SearchResultType::Character(_) => "[Character]",
             };
             ListItem::new(vec![
                 Spans::from(vec![
-                    Span::styled(format!("[{}] ", result_type), Style::default().fg(Color::Green)),
+                    Span::styled(format!("{} ", result_type), Style::default().fg(Color::Green)),
                     Span::raw(&result.title),
                 ]),
             ])

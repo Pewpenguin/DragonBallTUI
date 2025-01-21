@@ -44,6 +44,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                                     app.app_mode = AppMode::MovieDetails(movie_index);
                                     app.selected_tab = 1;
                                 }
+                                SearchResultType::Character(character_index) => {
+                                    app.app_mode = AppMode::CharacterDetails(character_index);
+                                    app.selected_tab = 2;
+                                }
                             }
                             app.search_results.clear();
                         }
