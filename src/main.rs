@@ -1,18 +1,15 @@
-mod ui;
 mod app;
-mod handlers;
 mod data;
+mod handlers;
+mod ui;
 
-use std::io;
 use crossterm::{
     event::{self, Event},
     terminal::{self, ClearType},
     ExecutableCommand,
 };
-use tui::{
-    backend::CrosstermBackend,
-    Terminal,
-};
+use std::io;
+use tui::{backend::CrosstermBackend, Terminal};
 
 use app::App;
 use handlers::handle_key_event;

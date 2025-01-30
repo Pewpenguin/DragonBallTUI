@@ -1,6 +1,9 @@
+use crate::data::{
+    load_characters_from_file, load_guide_from_file, load_movies_from_file, Character, Movie,
+    Series,
+};
+use chrono::NaiveDate;
 use tui::widgets::ListState;
-use chrono::NaiveDate; 
-use crate::data::{Series, Movie, load_guide_from_file, load_movies_from_file, Character, load_characters_from_file};
 #[derive(Debug, Clone, PartialEq)]
 pub enum SortOrder {
     Ascending,
@@ -28,7 +31,6 @@ pub struct App {
     pub app_mode: AppMode,
     pub selected_tab: usize,
     pub selected_series_tab: usize,
-    pub previous_tab: usize,
     pub search_query: String,
     pub search_results: Vec<SearchResult>,
     pub previous_mode: AppMode,
@@ -62,7 +64,7 @@ pub struct SearchResult {
 pub enum SearchResultType {
     Episode(usize, usize), // (series_index, episode_index)
     Movie(usize),          // movie_index
-    Character(usize),       // character_index
+    Character(usize),      // character_index
 }
 
 impl App {
@@ -81,7 +83,6 @@ impl App {
             app_mode: AppMode::EpisodesSeries(0),
             selected_tab: 0,
             selected_series_tab: 0,
-            previous_tab: 0,
             search_query: String::new(),
             search_results: Vec::new(),
             previous_mode: AppMode::EpisodesSeries(0),
@@ -120,7 +121,8 @@ impl App {
         let query = self.search_query.to_lowercase();
 
         match self.selected_tab {
-            0 => { // Episodes
+            0 => {
+                // Episodes
                 for (series_index, series) in self.guide.iter().enumerate() {
                     for (episode_index, episode) in series.episodes.iter().enumerate() {
                         if episode.title.to_lowercase().contains(&query) {
@@ -132,7 +134,8 @@ impl App {
                     }
                 }
             }
-            1 => { // Movies
+            1 => {
+                // Movies
                 for (movie_index, movie) in self.movies.iter().enumerate() {
                     if movie.title.to_lowercase().contains(&query) {
                         self.search_results.push(SearchResult {
@@ -142,7 +145,8 @@ impl App {
                     }
                 }
             }
-            2 => { // Characters
+            2 => {
+                // Characters
                 for (character_index, character) in self.characters.iter().enumerate() {
                     if character.name.to_lowercase().contains(&query) {
                         self.search_results.push(SearchResult {
@@ -156,7 +160,6 @@ impl App {
         }
     }
 
-    
     pub fn toggle_episode_sort_method(&mut self) {
         self.episode_sort_method = match self.episode_sort_method {
             EpisodeSortMethod::EpisodeNumber => EpisodeSortMethod::Title,
@@ -213,7 +216,7 @@ impl App {
                         let date_a = Self::parse_date(&a.release_date);
                         let date_b = Self::parse_date(&b.release_date);
                         date_a.cmp(&date_b)
-                    },
+                    }
                 };
                 match self.episode_sort_order {
                     SortOrder::Ascending => cmp,
@@ -232,7 +235,7 @@ impl App {
                     let date_a = Self::parse_date(&a.release_date);
                     let date_b = Self::parse_date(&b.release_date);
                     date_a.cmp(&date_b)
-                },
+                }
             };
             match self.movie_sort_order {
                 SortOrder::Ascending => cmp,

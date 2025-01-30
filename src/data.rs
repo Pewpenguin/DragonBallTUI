@@ -65,7 +65,10 @@ pub fn load_guide_from_file(file_path: &str) -> Result<Vec<Series>, Box<dyn std:
 }
 
 #[allow(dead_code)]
-pub fn save_guide_to_file(guide: &[Series], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn save_guide_to_file(
+    guide: &[Series],
+    file_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let file_content = serde_json::to_string_pretty(guide)?;
     write_file_content(file_path, &file_content)
 }
@@ -76,19 +79,27 @@ pub fn load_movies_from_file(file_path: &str) -> Result<Vec<Movie>, Box<dyn std:
 }
 
 #[allow(dead_code)]
-pub fn save_movies_to_file(movies: &[Movie], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn save_movies_to_file(
+    movies: &[Movie],
+    file_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let file_content = serde_json::to_string_pretty(movies)?;
     write_file_content(file_path, &file_content)
 }
 
 #[allow(dead_code)]
-pub fn load_characters_from_file(file_path: &str) -> Result<Vec<Character>, Box<dyn std::error::Error>> {
+pub fn load_characters_from_file(
+    file_path: &str,
+) -> Result<Vec<Character>, Box<dyn std::error::Error>> {
     let file_content = read_file_content(file_path)?;
     serde_json::from_str(&file_content).map_err(|e| e.into())
 }
 
 #[allow(dead_code)]
-pub fn save_characters_to_file(characters: &[Character], file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn save_characters_to_file(
+    characters: &[Character],
+    file_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let file_content = serde_json::to_string_pretty(characters)?;
     write_file_content(file_path, &file_content)
 }
