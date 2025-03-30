@@ -48,8 +48,13 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
         );
     f.render_widget(search_input, search_layout[0]);
 
-    let results: Vec<ListItem> = app
-        .search_results
+    // Update search pagination total items
+    app.search_pagination.total_items = app.search_results.len();
+    
+    // Get visible search results for current page
+    let visible_results = app.search_pagination.get_visible_items(&app.search_results);
+    
+    let results: Vec<ListItem> = visible_results
         .iter()
         .map(|result| {
             let result_type = match result.result_type {
@@ -60,16 +65,22 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
             ListItem::new(vec![Spans::from(vec![
                 Span::styled(
                     format!("{} ", result_type),
-                    Style::default().fg(Color::Green),
+                    Style::default().fg(app.config.get_color("secondary")),
                 ),
                 Span::raw(&result.title),
             ])])
         })
         .collect();
 
+    let page_info = app.search_pagination.page_info();
+    let title = Spans::from(vec![
+        Span::styled("Results ", Style::default().fg(app.config.get_color("primary"))),
+        Span::styled(format!("{}", page_info), Style::default().fg(app.config.get_color("accent"))),
+    ]);
+    
     let results_list = List::new(results)
-        .block(Block::default().borders(Borders::ALL).title("Results"))
-        .highlight_style(Style::default().bg(Color::Yellow));
+        .block(Block::default().borders(Borders::ALL).title(title))
+        .highlight_style(Style::default().bg(app.config.get_color("highlight")));
 
     f.render_stateful_widget(results_list, search_layout[1], &mut app.list_state);
 }
@@ -164,8 +175,13 @@ fn draw_episodes_list<B: Backend>(
     area: tui::layout::Rect,
 ) {
     if let Some(series) = app.guide.get(series_index) {
-        let items: Vec<_> = series
-            .episodes
+        // Update pagination total items
+        app.episodes_pagination.total_items = series.episodes.len();
+        
+        // Get visible episodes for current page
+        let visible_episodes = app.episodes_pagination.get_visible_items(&series.episodes);
+        
+        let items: Vec<_> = visible_episodes
             .iter()
             .map(|ep| ListItem::new(format!("{}: {}", ep.episode_number, ep.title)))
             .collect();
@@ -180,16 +196,31 @@ fn draw_episodes_list<B: Backend>(
             SortOrder::Descending => "↓",
         };
         let sort_info = format!("[{} {}]", sort_method, sort_order);
+        let page_info = app.episodes_pagination.page_info();
 
         let title = Spans::from(vec![
-            Span::styled("Episodes ", Style::default().fg(Color::LightCyan)),
-            Span::styled(sort_info, Style::default().fg(Color::LightYellow)),
+            Span::styled("Episodes ", Style::default().fg(app.config.get_color("primary"))),
+            Span::styled(sort_info, Style::default().fg(app.config.get_color("secondary"))),
+            Span::styled(format!(" | {}", page_info), Style::default().fg(app.config.get_color("accent"))),
         ]);
-
-        let list = List::new(items)
-            .block(Block::default().borders(Borders::ALL).title(title))
-            .highlight_style(Style::default().bg(Color::Yellow));
-        f.render_stateful_widget(list, area, &mut app.list_state);
+        
+        if app.show_charts {
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+                .split(area);
+                
+            let list = List::new(items)
+                .block(Block::default().borders(Borders::ALL).title(title))
+                .highlight_style(Style::default().bg(app.config.get_color("highlight")));
+            f.render_stateful_widget(list, chunks[0], &mut app.list_state);
+            
+        } else {
+            let list = List::new(items)
+                .block(Block::default().borders(Borders::ALL).title(title))
+                .highlight_style(Style::default().bg(app.config.get_color("highlight")));
+            f.render_stateful_widget(list, area, &mut app.list_state);
+        }
     }
 }
 
@@ -256,8 +287,13 @@ fn draw_movies_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
 }
 
 fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
-    let movie_items: Vec<_> = app
-        .movies
+    // Update pagination total items
+    app.movies_pagination.total_items = app.movies.len();
+    
+    // Get visible movies for current page
+    let visible_movies = app.movies_pagination.get_visible_items(&app.movies);
+    
+    let movie_items: Vec<_> = visible_movies
         .iter()
         .map(|movie| ListItem::new(format!("{}: {} ", movie.number, movie.title,)))
         .collect();
@@ -272,22 +308,43 @@ fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layo
         SortOrder::Descending => "↓",
     };
     let sort_info = format!("[{} {}]", sort_method, sort_order);
+    let page_info = app.movies_pagination.page_info();
 
     let title = Spans::from(vec![
-        Span::styled("Movies ", Style::default().fg(Color::Magenta)),
-        Span::styled(sort_info, Style::default().fg(Color::Yellow)),
+        Span::styled("Movies ", Style::default().fg(app.config.get_color("primary"))),
+        Span::styled(sort_info, Style::default().fg(app.config.get_color("secondary"))),
+        Span::styled(format!(" | {}", page_info), Style::default().fg(app.config.get_color("accent"))),
     ]);
 
-    let movies_list = List::new(movie_items)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(title)
-                .style(Style::default().fg(Color::White)),
-        )
-        .highlight_style(Style::default().bg(Color::DarkGray).fg(Color::White));
+    // If charts are enabled, split the area
+    if app.show_charts {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+            .split(area);
+            
+        let movies_list = List::new(movie_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(title)
+                    .style(Style::default().fg(app.config.get_color("text"))),
+            )
+            .highlight_style(Style::default().bg(app.config.get_color("highlight")));
 
-    f.render_stateful_widget(movies_list, area, &mut app.list_state);
+        f.render_stateful_widget(movies_list, chunks[0], &mut app.list_state);
+    } else {
+        let movies_list = List::new(movie_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(title)
+                    .style(Style::default().fg(app.config.get_color("text"))),
+            )
+            .highlight_style(Style::default().bg(app.config.get_color("highlight")));
+
+        f.render_stateful_widget(movies_list, area, &mut app.list_state);
+    }
 }
 
 fn draw_movie_details<B: Backend>(
@@ -355,11 +412,19 @@ fn draw_movie_details<B: Backend>(
 }
 
 fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
-    let character_items: Vec<_> = app
-        .characters
+    // Update pagination total items
+    app.characters_pagination.total_items = app.characters.len();
+    
+    // Get visible characters for current page
+    let visible_characters = app.characters_pagination.get_visible_items(&app.characters);
+    
+    let character_items: Vec<_> = visible_characters
         .iter()
         .enumerate()
-        .map(|(i, character)| ListItem::new(format!("{}. {}", i + 1, character.name)))
+        .map(|(i, character)| {
+            let index = i + app.characters_pagination.current_page * app.characters_pagination.items_per_page;
+            ListItem::new(format!("{}. {}", index + 1, character.name))
+        })
         .collect();
 
     let sort_order = match app.character_sort_order {
@@ -368,9 +433,11 @@ fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::l
     };
     let sort_info = format!("[Name {}]", sort_order);
 
+    let page_info = app.characters_pagination.page_info();
     let title = Spans::from(vec![
-        Span::styled("Characters ", Style::default().fg(Color::Green)),
-        Span::styled(sort_info, Style::default().fg(Color::Yellow)),
+        Span::styled("Characters ", Style::default().fg(app.config.get_color("primary"))),
+        Span::styled(sort_info, Style::default().fg(app.config.get_color("secondary"))),
+        Span::styled(format!(" | {}", page_info), Style::default().fg(app.config.get_color("accent"))),
     ]);
 
     let characters_list = List::new(character_items)
@@ -468,6 +535,8 @@ fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {
                 ("Up/Down", "Navigate lists"),
                 ("Enter", "View details of selected item"),
                 ("Esc", "Go back / Exit search"),
+                ("P/p", "Next page"),
+                ("Shift+P", "Previous page"),
             ],
         ),
         (
@@ -476,11 +545,22 @@ fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {
                 ("Q/q", "Quit the application"),
                 ("H/h", "Toggle this help screen"),
                 ("S/s", "Enter search mode"),
+                ("C/c", "Toggle charts view"),
+                ("T/t", "Cycle through themes"),
             ],
         ),
         (
             "Sorting",
             vec![("M/m", "Change sort method"), ("O/o", "Toggle sort order")],
+        ),
+        (
+            "Features",
+            vec![
+                ("Themes", "Multiple color themes available"),
+                ("Charts", "Visual data representation"),
+                ("Pagination", "Navigate through large datasets"),
+                ("Fuzzy Search", "Find content even with typos"),
+            ],
         ),
     ];
 

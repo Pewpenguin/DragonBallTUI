@@ -1,0 +1,44 @@
+{
+  "theme": "default",
+  "themes": [
+    {
+      "name": "default",
+      "colors": {
+        "primary": "#3498db",
+        "secondary": "#2ecc71",
+        "accent": "#e74c3c",
+        "background": "#2c3e50",
+        "text": "#ecf0f1",
+        "highlight": "#f39c12"
+      }
+    },
+    {
+      "name": "dark",
+      "colors": {
+        "primary": "#6c5ce7",
+        "secondary": "#00b894",
+        "accent": "#d63031",
+        "background": "#2d3436",
+        "text": "#dfe6e9",
+        "highlight": "#fdcb6e"
+      }
+    },
+    {
+      "name": "light",
+      "colors": {
+        "primary": "#0984e3",
+        "secondary": "#00cec9",
+        "accent": "#d63031",
+        "background": "#dfe6e9",
+        "text": "#2d3436",
+        "highlight": "#fdcb6e"
+      }
+    }
+  ],
+  "items_per_page": 10,
+  "show_keyboard_shortcuts": true,
+  "enable_animations": true,
+  "default_sort_method": "number",
+  "default_sort_order": "ascending",
+  "enable_fuzzy_search": true
+}

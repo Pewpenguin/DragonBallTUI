@@ -26,16 +26,32 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 app.search_results.clear();
             }
             KeyCode::Char(c) => {
-                app.search_query.push(c.to_lowercase().next().unwrap_or(c));
-                app.perform_search();
+                match c {
+                    'P' | 'p' => app.search_pagination.prev_page(),
+                    'N' | 'n' => app.search_pagination.next_page(),
+                    'F' | 'f' => app.search_pagination.first_page(),
+                    'L' | 'l' => app.search_pagination.last_page(),
+                    _ => {
+                        app.search_query.push(c);
+                        app.perform_search();
+                        // Reset pagination when search query changes
+                        app.search_pagination.first_page();
+                    }
+                }
             }
             KeyCode::Backspace => {
                 app.search_query.pop();
                 app.perform_search();
+                // Reset pagination when search query changes
+                app.search_pagination.first_page();
             }
             KeyCode::Enter => {
                 if let Some(selected) = app.list_state.selected() {
-                    if let Some(result) = app.search_results.get(selected) {
+                    // Calculate the actual index based on pagination
+                    let start = app.search_pagination.current_page * app.search_pagination.items_per_page;
+                    let actual_index = start + selected;
+                    
+                    if let Some(result) = app.search_results.get(actual_index) {
                         match result.result_type {
                             SearchResultType::Episode(series_index, episode_index) => {
                                 app.app_mode = AppMode::Details(series_index, episode_index);
@@ -56,8 +72,9 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 }
             }
             KeyCode::Down => {
+                let visible_items = app.search_pagination.get_visible_items(&app.search_results).len();
                 if let Some(selected) = app.list_state.selected() {
-                    if selected < app.search_results.len() - 1 {
+                    if selected < visible_items - 1 {
                         app.list_state.select(Some(selected + 1));
                     }
                 } else {
@@ -92,7 +109,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         } else if app.selected_tab == 1 {
                             app.toggle_movie_sort_method();
                         }
-                    }
+                    },
                     'o' => {
                         if app.selected_tab == 0 {
                             app.toggle_episode_sort_order();
@@ -101,6 +118,51 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         } else if app.selected_tab == 2 {
                             app.toggle_character_sort_order();
                         }
+                    },
+                    'n' | 'N' => {
+                        // Next page
+                        match app.selected_tab {
+                            0 => app.episodes_pagination.next_page(),
+                            1 => app.movies_pagination.next_page(),
+                            2 => app.characters_pagination.next_page(),
+                            _ => {}
+                        }
+                    },
+                    'P' | 'p' => {
+                        // Previous page
+                        match app.selected_tab {
+                            0 => app.episodes_pagination.prev_page(),
+                            1 => app.movies_pagination.prev_page(),
+                            2 => app.characters_pagination.prev_page(),
+                            _ => {}
+                        }
+                    },
+
+                    'f' | 'F' => {
+                        // First page
+                        match app.selected_tab {
+                            0 => app.episodes_pagination.first_page(),
+                            1 => app.movies_pagination.first_page(),
+                            2 => app.characters_pagination.first_page(),
+                            _ => {}
+                        }
+                    },
+                    'l' | 'L' => {
+                        // Last page
+                        match app.selected_tab {
+                            0 => app.episodes_pagination.last_page(),
+                            1 => app.movies_pagination.last_page(),
+                            2 => app.characters_pagination.last_page(),
+                            _ => {}
+                        }
+                    },
+                    't' => {
+                        // Cycle through themes
+                        let themes = &app.config.themes;
+                        let current_theme = &app.config.theme;
+                        let current_index = themes.iter().position(|t| t.name == *current_theme).unwrap_or(0);
+                        let next_index = (current_index + 1) % themes.len();
+                        app.config.theme = themes[next_index].name.clone();
                     }
                     _ => {}
                 }
@@ -129,13 +191,13 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
             }
             KeyCode::Down => {
                 if let Some(selected) = app.list_state.selected() {
-                    let count = match app.selected_tab {
-                        0 => app.guide[app.selected_series_tab].episodes.len(),
-                        1 => app.movies.len(),
-                        2 => app.characters.len(),
+                    let visible_items_count = match app.selected_tab {
+                        0 => app.episodes_pagination.get_visible_items(&app.guide[app.selected_series_tab].episodes).len(),
+                        1 => app.movies_pagination.get_visible_items(&app.movies).len(),
+                        2 => app.characters_pagination.get_visible_items(&app.characters).len(),
                         _ => 0,
                     };
-                    if selected < count - 1 {
+                    if selected < visible_items_count - 1 {
                         app.list_state.select(Some(selected + 1));
                     }
                 }

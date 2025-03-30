@@ -2,6 +2,9 @@ use crate::data::{
     load_characters_from_file, load_guide_from_file, load_movies_from_file, Character, Movie,
     Series,
 };
+use crate::config::Config;
+use crate::pagination::Pagination;
+use crate::search::FuzzySearch;
 use chrono::NaiveDate;
 use tui::widgets::ListState;
 #[derive(Debug, Clone, PartialEq)]
@@ -40,6 +43,13 @@ pub struct App {
     pub movie_sort_order: SortOrder,
     pub characters: Vec<Character>,
     pub character_sort_order: SortOrder,
+    pub config:Config,
+    pub episodes_pagination: Pagination,
+    pub movies_pagination: Pagination,
+    pub characters_pagination: Pagination,
+    pub search_pagination: Pagination,
+    pub fuzzy_search: FuzzySearch,
+    pub show_charts: bool,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -68,13 +78,24 @@ pub enum SearchResultType {
 }
 
 impl App {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new_with_config(config: Config) -> Result<Self, Box<dyn std::error::Error>> {
         let guide = load_guide_from_file("data/episodes.json")?;
         let movies = load_movies_from_file("data/movies.json")?;
         let characters = load_characters_from_file("data/characters.json")?;
 
         let mut list_state = ListState::default();
         list_state.select(Some(0));
+        
+        // Initialize pagination with config settings
+        let episodes_pagination = if !guide.is_empty() {
+            Pagination::new(config.items_per_page, guide[0].episodes.len())
+        } else {
+            Pagination::new(config.items_per_page, 0)
+        };
+        
+        let movies_pagination = Pagination::new(config.items_per_page, movies.len());
+        let characters_pagination = Pagination::new(config.items_per_page, characters.len());
+        let search_pagination = Pagination::new(config.items_per_page, 0);
 
         Ok(Self {
             guide,
@@ -92,6 +113,13 @@ impl App {
             movie_sort_order: SortOrder::Ascending,
             characters,
             character_sort_order: SortOrder::Ascending,
+            config,
+            episodes_pagination,
+            movies_pagination,
+            characters_pagination,
+            search_pagination,
+            fuzzy_search: FuzzySearch::new(),
+            show_charts: false,
         })
     }
 
@@ -118,46 +146,57 @@ impl App {
 
     pub fn perform_search(&mut self) {
         self.search_results.clear();
-        let query = self.search_query.to_lowercase();
+        let query = &self.search_query;
+        
+        // Skip search if query is empty
+        if query.is_empty() {
+            return;
+        }
 
         match self.selected_tab {
             0 => {
                 // Episodes
                 for (series_index, series) in self.guide.iter().enumerate() {
-                    for (episode_index, episode) in series.episodes.iter().enumerate() {
-                        if episode.title.to_lowercase().contains(&query) {
-                            self.search_results.push(SearchResult {
-                                title: episode.title.clone(),
-                                result_type: SearchResultType::Episode(series_index, episode_index),
-                            });
-                        }
+                    let results = self.fuzzy_search.search(query, &series.episodes, |ep| ep.title.clone());
+                    for (episode_index, _score) in results {
+                        let episode = &series.episodes[episode_index];
+                        let highlighted_title = self.fuzzy_search.highlight_matches(&episode.title, query);
+                        self.search_results.push(SearchResult {
+                            title: highlighted_title,
+                            result_type: SearchResultType::Episode(series_index, episode_index),
+                        });
                     }
                 }
             }
             1 => {
                 // Movies
-                for (movie_index, movie) in self.movies.iter().enumerate() {
-                    if movie.title.to_lowercase().contains(&query) {
-                        self.search_results.push(SearchResult {
-                            title: movie.title.clone(),
-                            result_type: SearchResultType::Movie(movie_index),
-                        });
-                    }
+                let results = self.fuzzy_search.search(query, &self.movies, |movie| movie.title.clone());
+                for (movie_index, _score) in results {
+                    let movie = &self.movies[movie_index];
+                    let highlighted_title = self.fuzzy_search.highlight_matches(&movie.title, query);
+                    self.search_results.push(SearchResult {
+                        title: highlighted_title,
+                        result_type: SearchResultType::Movie(movie_index),
+                    });
                 }
             }
             2 => {
                 // Characters
-                for (character_index, character) in self.characters.iter().enumerate() {
-                    if character.name.to_lowercase().contains(&query) {
-                        self.search_results.push(SearchResult {
-                            title: character.name.clone(),
-                            result_type: SearchResultType::Character(character_index),
-                        });
-                    }
+                let results = self.fuzzy_search.search(query, &self.characters, |character| character.name.clone());
+                for (character_index, _score) in results {
+                    let character = &self.characters[character_index];
+                    let highlighted_name = self.fuzzy_search.highlight_matches(&character.name, query);
+                    self.search_results.push(SearchResult {
+                        title: highlighted_name,
+                        result_type: SearchResultType::Character(character_index),
+                    });
                 }
             }
             _ => {}
         }
+        
+        self.search_pagination.total_items = self.search_results.len();
+        self.search_pagination.first_page();
     }
 
     pub fn toggle_episode_sort_method(&mut self) {
