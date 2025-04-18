@@ -226,18 +226,33 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
             },
             KeyCode::Enter => match app.app_mode {
                 AppMode::EpisodesSeries(series_index) => {
-                    if let Some(episode_index) = app.list_state.selected() {
-                        app.app_mode = AppMode::Details(series_index, episode_index);
+                    if let Some(selected) = app.list_state.selected() {
+                        let start = app.episodes_pagination.current_page * app.episodes_pagination.items_per_page;
+                        let actual_index = start + selected;
+                        
+                        if actual_index < app.guide[series_index].episodes.len() {
+                            app.app_mode = AppMode::Details(series_index, actual_index);
+                        }
                     }
                 }
                 AppMode::MoviesList => {
-                    if let Some(movie_index) = app.list_state.selected() {
-                        app.app_mode = AppMode::MovieDetails(movie_index);
+                    if let Some(selected) = app.list_state.selected() {
+                        let start = app.movies_pagination.current_page * app.movies_pagination.items_per_page;
+                        let actual_index = start + selected;
+                        
+                        if actual_index < app.movies.len() {
+                            app.app_mode = AppMode::MovieDetails(actual_index);
+                        }
                     }
                 }
                 AppMode::Characters => {
-                    if let Some(character_index) = app.list_state.selected() {
-                        app.app_mode = AppMode::CharacterDetails(character_index);
+                    if let Some(selected) = app.list_state.selected() {
+                        let start = app.characters_pagination.current_page * app.characters_pagination.items_per_page;
+                        let actual_index = start + selected;
+                        
+                        if actual_index < app.characters.len() {
+                            app.app_mode = AppMode::CharacterDetails(actual_index);
+                        }
                     }
                 }
                 _ => {}
