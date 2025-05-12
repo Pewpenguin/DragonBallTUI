@@ -4,7 +4,7 @@ use tui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
-    widgets::{Block, Borders, List, ListItem, Paragraph, Tabs},
+    widgets::{Block, BorderType, Borders, List, ListItem, Paragraph, Tabs, Wrap},
     Frame,
 };
 
@@ -35,7 +35,7 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
     let search_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+        .constraints([Constraint::Length(3), Constraint::Min(1), Constraint::Length(3)].as_ref())
         .split(area);
 
     let search_input = Paragraph::new(app.search_query.as_ref())
@@ -43,8 +43,12 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title("Search")
-                .style(Style::default().fg(Color::White)),
+                .border_type(BorderType::Rounded)
+                .title(Span::styled(
+                    " Search ",
+                    Style::default().add_modifier(Modifier::BOLD),
+                ))
+                .style(Style::default().fg(Color::Cyan)),
         );
     f.render_widget(search_input, search_layout[0]);
 
@@ -53,6 +57,16 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
     
     // Get visible search results for current page
     let visible_results = app.search_pagination.get_visible_items(&app.search_results);
+    
+
+    let is_searching = app.search_query.len() > 0 && app.search_results.is_empty();
+    let spinner_symbols = vec!["-", "\\", "|", "/"];
+    let spinner_index = (app.search_query.len() % spinner_symbols.len()) as usize;
+    let spinner = if is_searching {
+        spinner_symbols[spinner_index]
+    } else {
+        ""
+    };
     
     let results: Vec<ListItem> = visible_results
         .iter()
@@ -75,14 +89,38 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
     let page_info = app.search_pagination.page_info();
     let title = Spans::from(vec![
         Span::styled("Results ", Style::default().fg(app.config.get_color("primary"))),
-        Span::styled(format!("{}", page_info), Style::default().fg(app.config.get_color("accent"))),
+        Span::styled(format!("{} {}", spinner, page_info), Style::default().fg(app.config.get_color("accent"))),
     ]);
     
+
     let results_list = List::new(results)
-        .block(Block::default().borders(Borders::ALL).title(title))
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Double)
+            .title(title))
         .highlight_style(Style::default().bg(app.config.get_color("highlight")));
 
     f.render_stateful_widget(results_list, search_layout[1], &mut app.list_state);
+    
+    if !app.search_query.is_empty() {
+        let status_text = if is_searching {
+            format!("Searching for '{}' {}", app.search_query, spinner)
+        } else {
+            format!("Found {} results for '{}'", app.search_results.len(), app.search_query)
+        };
+        
+        let search_status = Paragraph::new(status_text)
+            .style(Style::default().fg(Color::White))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Plain)
+                    .title("Status")
+            )
+            .alignment(tui::layout::Alignment::Center);
+            
+        f.render_widget(search_status, search_layout[2]);
+    }
 }
 
 fn draw_main_tabs<B: Backend>(f: &mut Frame<B>, app: &App, area: tui::layout::Rect) {
@@ -235,11 +273,17 @@ fn draw_episode_details<B: Backend>(
         if let Some(episode) = series.episodes.get(episode_index) {
             let block = Block::default()
                 .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
                 .title(Span::styled(
                     format!(" Episode Details: {} ", episode.title),
                     Style::default().add_modifier(Modifier::BOLD),
                 ))
                 .border_style(Style::default().fg(Color::Cyan));
+
+            let chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Min(1), Constraint::Length(3)].as_ref())
+                .split(area);
 
             let details = vec![
                 Spans::from(vec![
@@ -268,8 +312,22 @@ fn draw_episode_details<B: Backend>(
 
             let paragraph = Paragraph::new(details)
                 .block(block)
-                .wrap(tui::widgets::Wrap { trim: true });
-            f.render_widget(paragraph, area);
+                .wrap(Wrap { trim: true });
+            f.render_widget(paragraph, chunks[0]);
+
+            let additional_info = Paragraph::new(vec![
+                Spans::from(vec![Span::styled(
+                    "Press 'Esc' to go back to episodes list",
+                    Style::default().fg(Color::Gray),
+                )]),
+            ])
+            .block(Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .title("Navigation"))
+            .alignment(tui::layout::Alignment::Center);
+            
+            f.render_widget(additional_info, chunks[1]);
         }
     }
 }
@@ -354,15 +412,21 @@ fn draw_movie_details<B: Backend>(
     area: tui::layout::Rect,
 ) {
     if let Some(movie) = app.movies.get(movie_index) {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)].as_ref())
+            .split(area);
+
         let block = Block::default()
             .borders(Borders::ALL)
+            .border_type(BorderType::Thick)
             .title(Span::styled(
                 format!(" Movie Details: {} ", movie.title),
                 Style::default()
                     .add_modifier(Modifier::BOLD)
                     .fg(Color::LightCyan),
             ))
-            .border_style(Style::default().fg(Color::Gray));
+            .border_style(Style::default().fg(Color::Magenta));
 
         let details = vec![
             Spans::from(vec![
@@ -406,8 +470,22 @@ fn draw_movie_details<B: Backend>(
 
         let paragraph = Paragraph::new(details)
             .block(block)
-            .wrap(tui::widgets::Wrap { trim: true });
-        f.render_widget(paragraph, area);
+            .wrap(Wrap { trim: true });
+        f.render_widget(paragraph, chunks[0]);
+
+        let additional_info = Paragraph::new(vec![
+            Spans::from(vec![Span::styled(
+                "Press 'Esc' to go back to movies list",
+                Style::default().fg(Color::Gray),
+            )]),
+        ])
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Double)
+            .title("Navigation"))
+        .alignment(tui::layout::Alignment::Center);
+        
+        f.render_widget(additional_info, chunks[1]);
     }
 }
 
@@ -459,15 +537,21 @@ fn draw_character_details<B: Backend>(
     area: tui::layout::Rect,
 ) {
     if let Some(character) = app.characters.get(character_index) {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(1), Constraint::Length(3)].as_ref())
+            .split(area);
+
         let block = Block::default()
             .borders(Borders::ALL)
+            .border_type(BorderType::Plain)
             .title(Span::styled(
                 format!(" Character Details: {} ", character.name),
                 Style::default()
                     .add_modifier(Modifier::BOLD)
                     .fg(Color::LightCyan),
             ))
-            .border_style(Style::default().fg(Color::Gray));
+            .border_style(Style::default().fg(Color::Yellow));
 
         let details = vec![
             Spans::from(vec![
@@ -500,8 +584,22 @@ fn draw_character_details<B: Backend>(
 
         let paragraph = Paragraph::new(details)
             .block(block)
-            .wrap(tui::widgets::Wrap { trim: true });
-        f.render_widget(paragraph, area);
+            .wrap(Wrap { trim: true });
+        f.render_widget(paragraph, chunks[0]);
+
+        let additional_info = Paragraph::new(vec![
+            Spans::from(vec![Span::styled(
+                "Press 'Esc' to go back to characters list",
+                Style::default().fg(Color::Gray),
+            )]),
+        ])
+        .block(Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Double)
+            .title("Navigation"))
+        .alignment(tui::layout::Alignment::Center);
+        
+        f.render_widget(additional_info, chunks[1]);
     }
 }
 
