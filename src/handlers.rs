@@ -225,6 +225,11 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                     app.selected_tab = (app.selected_tab + 1) % 3;
                     app_mode(app);
                     app.reset_list_state_for_tab();
+                    
+                    app.episodes_pagination.first_page();
+                    app.movies_pagination.first_page();
+                    app.characters_pagination.first_page();
+                    app.search_pagination.first_page();
                 }
             }
             KeyCode::Left | KeyCode::Right => {
@@ -237,6 +242,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                     };
                     app.app_mode = AppMode::EpisodesSeries(app.selected_series_tab);
                     app.reset_list_state_for_tab();
+                    app.episodes_pagination.first_page();
                 }
             }
             KeyCode::Down => {

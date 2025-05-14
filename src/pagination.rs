@@ -63,6 +63,10 @@ impl Pagination {
         }
         
         let start = self.current_page * self.items_per_page;
+        if start >= self.total_items {
+            return (0, 0);
+        }
+        
         let end = std::cmp::min(start + self.items_per_page, self.total_items);
         (start, end)
     }
@@ -73,6 +77,10 @@ impl Pagination {
         }
         
         let (start, end) = self.visible_items_range();
+        if start == 0 && end == 0 {
+            return &[];
+        }
+        
         &items[start..end]
     }
 }
