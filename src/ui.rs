@@ -106,7 +106,12 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
         let status_text = if is_searching {
             format!("Searching for '{}' {}", app.search_query, spinner)
         } else {
-            format!("Found {} results for '{}'", app.search_results.len(), app.search_query)
+            let pagination_help = if app.search_results.len() > app.search_pagination.items_per_page {
+                " (Use Ctrl+P/N/F/L for pagination)"
+            } else {
+                ""
+            };
+            format!("Found {} results for '{}'{}", app.search_results.len(), app.search_query, pagination_help)
         };
         
         let search_status = Paragraph::new(status_text)
@@ -633,8 +638,14 @@ fn draw_help_screen<B: Backend>(f: &mut Frame<B>, area: tui::layout::Rect) {
                 ("Up/Down", "Navigate lists"),
                 ("Enter", "View details of selected item"),
                 ("Esc", "Go back / Exit search"),
-                ("P/p", "Next page"),
-                ("Shift+P", "Previous page"),
+                ("P/p", "Previous page"),
+                ("N/n", "Next page"),
+                ("F/f", "First page"),
+                ("L/l", "Last page"),
+                ("Ctrl+P", "Previous page (in search mode)"),
+                ("Ctrl+N", "Next page (in search mode)"),
+                ("Ctrl+F", "First page (in search mode)"),
+                ("Ctrl+L", "Last page (in search mode)"),
             ],
         ),
         (
