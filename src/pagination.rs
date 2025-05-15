@@ -46,13 +46,16 @@ impl Pagination {
         if self.total_items == 0 {
             return format!("Page 1/1 (No items)");
         }
-        
+
         format!(
             "Page {}/{} (Items {}-{} of {})",
             self.current_page + 1,
             self.total_pages(),
             self.current_page * self.items_per_page + 1,
-            std::cmp::min((self.current_page + 1) * self.items_per_page, self.total_items),
+            std::cmp::min(
+                (self.current_page + 1) * self.items_per_page,
+                self.total_items
+            ),
             self.total_items
         )
     }
@@ -61,12 +64,12 @@ impl Pagination {
         if self.total_items == 0 {
             return (0, 0);
         }
-        
+
         let start = self.current_page * self.items_per_page;
         if start >= self.total_items {
             return (0, 0);
         }
-        
+
         let end = std::cmp::min(start + self.items_per_page, self.total_items);
         (start, end)
     }
@@ -75,12 +78,12 @@ impl Pagination {
         if items.is_empty() {
             return &[];
         }
-        
+
         let (start, end) = self.visible_items_range();
         if start == 0 && end == 0 {
             return &[];
         }
-        
+
         &items[start..end]
     }
 }

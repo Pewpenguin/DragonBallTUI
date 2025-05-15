@@ -1,8 +1,8 @@
+use crate::config::Config;
 use crate::data::{
     load_characters_from_file, load_guide_from_file, load_movies_from_file, Character, Movie,
     Series,
 };
-use crate::config::Config;
 use crate::pagination::Pagination;
 use crate::search::FuzzySearch;
 use chrono::NaiveDate;
@@ -43,7 +43,7 @@ pub struct App {
     pub movie_sort_order: SortOrder,
     pub characters: Vec<Character>,
     pub character_sort_order: SortOrder,
-    pub config:Config,
+    pub config: Config,
     pub episodes_pagination: Pagination,
     pub movies_pagination: Pagination,
     pub characters_pagination: Pagination,
@@ -85,14 +85,14 @@ impl App {
 
         let mut list_state = ListState::default();
         list_state.select(Some(0));
-        
+
         // Initialize pagination with config settings
         let episodes_pagination = if !guide.is_empty() {
             Pagination::new(config.items_per_page, guide[0].episodes.len())
         } else {
             Pagination::new(config.items_per_page, 0)
         };
-        
+
         let movies_pagination = Pagination::new(config.items_per_page, movies.len());
         let characters_pagination = Pagination::new(config.items_per_page, characters.len());
         let search_pagination = Pagination::new(config.items_per_page, 0);
@@ -147,7 +147,7 @@ impl App {
     pub fn perform_search(&mut self) {
         self.search_results.clear();
         let query = &self.search_query;
-        
+
         // Skip search if query is empty
         if query.is_empty() {
             return;
@@ -157,10 +157,13 @@ impl App {
             0 => {
                 // Episodes
                 for (series_index, series) in self.guide.iter().enumerate() {
-                    let results = self.fuzzy_search.search(query, &series.episodes, |ep| ep.title.clone());
+                    let results = self
+                        .fuzzy_search
+                        .search(query, &series.episodes, |ep| ep.title.clone());
                     for (episode_index, _score) in results {
                         let episode = &series.episodes[episode_index];
-                        let highlighted_title = self.fuzzy_search.highlight_matches(&episode.title, query);
+                        let highlighted_title =
+                            self.fuzzy_search.highlight_matches(&episode.title, query);
                         self.search_results.push(SearchResult {
                             title: highlighted_title,
                             result_type: SearchResultType::Episode(series_index, episode_index),
@@ -170,10 +173,13 @@ impl App {
             }
             1 => {
                 // Movies
-                let results = self.fuzzy_search.search(query, &self.movies, |movie| movie.title.clone());
+                let results = self
+                    .fuzzy_search
+                    .search(query, &self.movies, |movie| movie.title.clone());
                 for (movie_index, _score) in results {
                     let movie = &self.movies[movie_index];
-                    let highlighted_title = self.fuzzy_search.highlight_matches(&movie.title, query);
+                    let highlighted_title =
+                        self.fuzzy_search.highlight_matches(&movie.title, query);
                     self.search_results.push(SearchResult {
                         title: highlighted_title,
                         result_type: SearchResultType::Movie(movie_index),
@@ -182,10 +188,13 @@ impl App {
             }
             2 => {
                 // Characters
-                let results = self.fuzzy_search.search(query, &self.characters, |character| character.name.clone());
+                let results = self
+                    .fuzzy_search
+                    .search(query, &self.characters, |character| character.name.clone());
                 for (character_index, _score) in results {
                     let character = &self.characters[character_index];
-                    let highlighted_name = self.fuzzy_search.highlight_matches(&character.name, query);
+                    let highlighted_name =
+                        self.fuzzy_search.highlight_matches(&character.name, query);
                     self.search_results.push(SearchResult {
                         title: highlighted_name,
                         result_type: SearchResultType::Character(character_index),
@@ -194,7 +203,7 @@ impl App {
             }
             _ => {}
         }
-        
+
         self.search_pagination.total_items = self.search_results.len();
         self.search_pagination.first_page();
     }

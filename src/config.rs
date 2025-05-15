@@ -98,7 +98,8 @@ impl Config {
         let file_content = serde_json::to_string_pretty(self)?;
         let path = Path::new(file_path);
         let mut file = fs::File::create(path)?;
-        file.write_all(file_content.as_bytes()).map_err(|e| e.into())
+        file.write_all(file_content.as_bytes())
+            .map_err(|e| e.into())
     }
 
     pub fn get_theme_colors(&self) -> &ThemeColors {

@@ -25,25 +25,29 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 app_mode(app);
                 app.search_results.clear();
             }
-            KeyCode::Char(c) if key.modifiers.contains(crossterm::event::KeyModifiers::CONTROL) => {
+            KeyCode::Char(c)
+                if key
+                    .modifiers
+                    .contains(crossterm::event::KeyModifiers::CONTROL) =>
+            {
                 if !app.search_results.is_empty() {
                     match c {
                         'p' | 'P' => {
                             app.search_pagination.prev_page();
                             app.list_state.select(Some(0));
-                        },
+                        }
                         'n' | 'N' => {
                             app.search_pagination.next_page();
                             app.list_state.select(Some(0));
-                        },
+                        }
                         'f' | 'F' => {
                             app.search_pagination.first_page();
                             app.list_state.select(Some(0));
-                        },
+                        }
                         'l' | 'L' => {
                             app.search_pagination.last_page();
                             app.list_state.select(Some(0));
-                        },
+                        }
                         _ => {}
                     }
                 }
@@ -62,9 +66,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
             KeyCode::Enter => {
                 if let Some(selected) = app.list_state.selected() {
                     // Calculate the actual index based on pagination
-                    let start = app.search_pagination.current_page * app.search_pagination.items_per_page;
+                    let start =
+                        app.search_pagination.current_page * app.search_pagination.items_per_page;
                     let actual_index = start + selected;
-                    
+
                     if let Some(result) = app.search_results.get(actual_index) {
                         match result.result_type {
                             SearchResultType::Episode(series_index, episode_index) => {
@@ -86,7 +91,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 }
             }
             KeyCode::Down => {
-                let visible_items = app.search_pagination.get_visible_items(&app.search_results).len();
+                let visible_items = app
+                    .search_pagination
+                    .get_visible_items(&app.search_results)
+                    .len();
                 if let Some(selected) = app.list_state.selected() {
                     if selected < visible_items - 1 {
                         app.list_state.select(Some(selected + 1));
@@ -123,7 +131,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         } else if app.selected_tab == 1 {
                             app.toggle_movie_sort_method();
                         }
-                    },
+                    }
                     'o' => {
                         if app.selected_tab == 0 {
                             app.toggle_episode_sort_order();
@@ -132,43 +140,43 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                         } else if app.selected_tab == 2 {
                             app.toggle_character_sort_order();
                         }
-                    },
+                    }
                     'n' | 'N' => {
                         // Next page
                         match app.selected_tab {
                             0 => {
                                 app.episodes_pagination.next_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             1 => {
                                 app.movies_pagination.next_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             2 => {
                                 app.characters_pagination.next_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             _ => {}
                         }
-                    },
+                    }
                     'P' | 'p' => {
                         // Previous page
                         match app.selected_tab {
                             0 => {
                                 app.episodes_pagination.prev_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             1 => {
                                 app.movies_pagination.prev_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             2 => {
                                 app.characters_pagination.prev_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             _ => {}
                         }
-                    },
+                    }
 
                     'f' | 'F' => {
                         // First page
@@ -176,41 +184,44 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                             0 => {
                                 app.episodes_pagination.first_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             1 => {
                                 app.movies_pagination.first_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             2 => {
                                 app.characters_pagination.first_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             _ => {}
                         }
-                    },
+                    }
                     'l' | 'L' => {
                         // Last page
                         match app.selected_tab {
                             0 => {
                                 app.episodes_pagination.last_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             1 => {
                                 app.movies_pagination.last_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             2 => {
                                 app.characters_pagination.last_page();
                                 app.list_state.select(Some(0));
-                            },
+                            }
                             _ => {}
                         }
-                    },
+                    }
                     't' => {
                         // Cycle through themes
                         let themes = &app.config.themes;
                         let current_theme = &app.config.theme;
-                        let current_index = themes.iter().position(|t| t.name == *current_theme).unwrap_or(0);
+                        let current_index = themes
+                            .iter()
+                            .position(|t| t.name == *current_theme)
+                            .unwrap_or(0);
                         let next_index = (current_index + 1) % themes.len();
                         app.config.theme = themes[next_index].name.clone();
                     }
@@ -225,7 +236,7 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                     app.selected_tab = (app.selected_tab + 1) % 3;
                     app_mode(app);
                     app.reset_list_state_for_tab();
-                    
+
                     app.episodes_pagination.first_page();
                     app.movies_pagination.first_page();
                     app.characters_pagination.first_page();
@@ -248,9 +259,15 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
             KeyCode::Down => {
                 if let Some(selected) = app.list_state.selected() {
                     let visible_items_count = match app.selected_tab {
-                        0 => app.episodes_pagination.get_visible_items(&app.guide[app.selected_series_tab].episodes).len(),
+                        0 => app
+                            .episodes_pagination
+                            .get_visible_items(&app.guide[app.selected_series_tab].episodes)
+                            .len(),
                         1 => app.movies_pagination.get_visible_items(&app.movies).len(),
-                        2 => app.characters_pagination.get_visible_items(&app.characters).len(),
+                        2 => app
+                            .characters_pagination
+                            .get_visible_items(&app.characters)
+                            .len(),
                         _ => 0,
                     };
                     if selected < visible_items_count - 1 {
@@ -283,9 +300,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
             KeyCode::Enter => match app.app_mode {
                 AppMode::EpisodesSeries(series_index) => {
                     if let Some(selected) = app.list_state.selected() {
-                        let start = app.episodes_pagination.current_page * app.episodes_pagination.items_per_page;
+                        let start = app.episodes_pagination.current_page
+                            * app.episodes_pagination.items_per_page;
                         let actual_index = start + selected;
-                        
+
                         if actual_index < app.guide[series_index].episodes.len() {
                             app.app_mode = AppMode::Details(series_index, actual_index);
                         }
@@ -293,9 +311,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 }
                 AppMode::MoviesList => {
                     if let Some(selected) = app.list_state.selected() {
-                        let start = app.movies_pagination.current_page * app.movies_pagination.items_per_page;
+                        let start = app.movies_pagination.current_page
+                            * app.movies_pagination.items_per_page;
                         let actual_index = start + selected;
-                        
+
                         if actual_index < app.movies.len() {
                             app.app_mode = AppMode::MovieDetails(actual_index);
                         }
@@ -303,9 +322,10 @@ pub fn handle_key_event(key: KeyEvent, app: &mut App) -> Result<bool, Box<dyn st
                 }
                 AppMode::Characters => {
                     if let Some(selected) = app.list_state.selected() {
-                        let start = app.characters_pagination.current_page * app.characters_pagination.items_per_page;
+                        let start = app.characters_pagination.current_page
+                            * app.characters_pagination.items_per_page;
                         let actual_index = start + selected;
-                        
+
                         if actual_index < app.characters.len() {
                             app.app_mode = AppMode::CharacterDetails(actual_index);
                         }

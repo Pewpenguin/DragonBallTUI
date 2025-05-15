@@ -1,5 +1,5 @@
-use fuzzy_matcher::FuzzyMatcher;
 use fuzzy_matcher::skim::SkimMatcherV2;
+use fuzzy_matcher::FuzzyMatcher;
 
 pub struct FuzzySearch {
     matcher: SkimMatcherV2,
@@ -40,21 +40,21 @@ impl FuzzySearch {
                 if idx > last_idx {
                     result.push_str(&text[last_idx..idx]);
                 }
-                
+
                 // Add the matched character with highlighting
                 if idx < text.len() {
                     let c = text.chars().nth(idx).unwrap();
                     result.push_str(&format!("[{}]", c));
                 }
-                
+
                 last_idx = idx + 1;
             }
-            
+
             // Add the remaining text after the last match
             if last_idx < text.len() {
                 result.push_str(&text[last_idx..]);
             }
-            
+
             result
         } else {
             text.to_string()

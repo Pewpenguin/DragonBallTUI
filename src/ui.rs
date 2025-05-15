@@ -35,7 +35,14 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
     let search_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(1), Constraint::Length(3)].as_ref())
+        .constraints(
+            [
+                Constraint::Length(3),
+                Constraint::Min(1),
+                Constraint::Length(3),
+            ]
+            .as_ref(),
+        )
         .split(area);
 
     let search_input = Paragraph::new(app.search_query.as_ref())
@@ -54,10 +61,9 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
 
     // Update search pagination total items
     app.search_pagination.total_items = app.search_results.len();
-    
+
     // Get visible search results for current page
     let visible_results = app.search_pagination.get_visible_items(&app.search_results);
-    
 
     let is_searching = app.search_query.len() > 0 && app.search_results.is_empty();
     let spinner_symbols = vec!["-", "\\", "|", "/"];
@@ -67,7 +73,7 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
     } else {
         ""
     };
-    
+
     let results: Vec<ListItem> = visible_results
         .iter()
         .map(|result| {
@@ -88,42 +94,55 @@ fn draw_search_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
 
     let page_info = app.search_pagination.page_info();
     let title = Spans::from(vec![
-        Span::styled("Results ", Style::default().fg(app.config.get_color("primary"))),
-        Span::styled(format!("{} {}", spinner, page_info), Style::default().fg(app.config.get_color("accent"))),
+        Span::styled(
+            "Results ",
+            Style::default().fg(app.config.get_color("primary")),
+        ),
+        Span::styled(
+            format!("{} {}", spinner, page_info),
+            Style::default().fg(app.config.get_color("accent")),
+        ),
     ]);
-    
 
     let results_list = List::new(results)
-        .block(Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Double)
-            .title(title))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Double)
+                .title(title),
+        )
         .highlight_style(Style::default().bg(app.config.get_color("highlight")));
 
     f.render_stateful_widget(results_list, search_layout[1], &mut app.list_state);
-    
+
     if !app.search_query.is_empty() {
         let status_text = if is_searching {
             format!("Searching for '{}' {}", app.search_query, spinner)
         } else {
-            let pagination_help = if app.search_results.len() > app.search_pagination.items_per_page {
+            let pagination_help = if app.search_results.len() > app.search_pagination.items_per_page
+            {
                 " (Use Ctrl+P/N/F/L for pagination)"
             } else {
                 ""
             };
-            format!("Found {} results for '{}'{}", app.search_results.len(), app.search_query, pagination_help)
+            format!(
+                "Found {} results for '{}'{}",
+                app.search_results.len(),
+                app.search_query,
+                pagination_help
+            )
         };
-        
+
         let search_status = Paragraph::new(status_text)
             .style(Style::default().fg(Color::White))
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
-                    .title("Status")
+                    .title("Status"),
             )
             .alignment(tui::layout::Alignment::Center);
-            
+
         f.render_widget(search_status, search_layout[2]);
     }
 }
@@ -220,10 +239,10 @@ fn draw_episodes_list<B: Backend>(
     if let Some(series) = app.guide.get(series_index) {
         // Update pagination total items
         app.episodes_pagination.total_items = series.episodes.len();
-        
+
         // Get visible episodes for current page
         let visible_episodes = app.episodes_pagination.get_visible_items(&series.episodes);
-        
+
         let items: Vec<_> = visible_episodes
             .iter()
             .map(|ep| ListItem::new(format!("{}: {}", ep.episode_number, ep.title)))
@@ -242,22 +261,30 @@ fn draw_episodes_list<B: Backend>(
         let page_info = app.episodes_pagination.page_info();
 
         let title = Spans::from(vec![
-            Span::styled("Episodes ", Style::default().fg(app.config.get_color("primary"))),
-            Span::styled(sort_info, Style::default().fg(app.config.get_color("secondary"))),
-            Span::styled(format!(" | {}", page_info), Style::default().fg(app.config.get_color("accent"))),
+            Span::styled(
+                "Episodes ",
+                Style::default().fg(app.config.get_color("primary")),
+            ),
+            Span::styled(
+                sort_info,
+                Style::default().fg(app.config.get_color("secondary")),
+            ),
+            Span::styled(
+                format!(" | {}", page_info),
+                Style::default().fg(app.config.get_color("accent")),
+            ),
         ]);
-        
+
         if app.show_charts {
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
                 .split(area);
-                
+
             let list = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title(title))
                 .highlight_style(Style::default().bg(app.config.get_color("highlight")));
             f.render_stateful_widget(list, chunks[0], &mut app.list_state);
-            
         } else {
             let list = List::new(items)
                 .block(Block::default().borders(Borders::ALL).title(title))
@@ -320,18 +347,18 @@ fn draw_episode_details<B: Backend>(
                 .wrap(Wrap { trim: true });
             f.render_widget(paragraph, chunks[0]);
 
-            let additional_info = Paragraph::new(vec![
-                Spans::from(vec![Span::styled(
-                    "Press 'Esc' to go back to episodes list",
-                    Style::default().fg(Color::Gray),
-                )]),
-            ])
-            .block(Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .title("Navigation"))
+            let additional_info = Paragraph::new(vec![Spans::from(vec![Span::styled(
+                "Press 'Esc' to go back to episodes list",
+                Style::default().fg(Color::Gray),
+            )])])
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .title("Navigation"),
+            )
             .alignment(tui::layout::Alignment::Center);
-            
+
             f.render_widget(additional_info, chunks[1]);
         }
     }
@@ -352,10 +379,10 @@ fn draw_movies_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layou
 fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
     // Update pagination total items
     app.movies_pagination.total_items = app.movies.len();
-    
+
     // Get visible movies for current page
     let visible_movies = app.movies_pagination.get_visible_items(&app.movies);
-    
+
     let movie_items: Vec<_> = visible_movies
         .iter()
         .map(|movie| ListItem::new(format!("{}: {} ", movie.number, movie.title,)))
@@ -374,9 +401,18 @@ fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layo
     let page_info = app.movies_pagination.page_info();
 
     let title = Spans::from(vec![
-        Span::styled("Movies ", Style::default().fg(app.config.get_color("primary"))),
-        Span::styled(sort_info, Style::default().fg(app.config.get_color("secondary"))),
-        Span::styled(format!(" | {}", page_info), Style::default().fg(app.config.get_color("accent"))),
+        Span::styled(
+            "Movies ",
+            Style::default().fg(app.config.get_color("primary")),
+        ),
+        Span::styled(
+            sort_info,
+            Style::default().fg(app.config.get_color("secondary")),
+        ),
+        Span::styled(
+            format!(" | {}", page_info),
+            Style::default().fg(app.config.get_color("accent")),
+        ),
     ]);
 
     // If charts are enabled, split the area
@@ -385,7 +421,7 @@ fn draw_movies_list<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layo
             .direction(Direction::Vertical)
             .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
             .split(area);
-            
+
         let movies_list = List::new(movie_items)
             .block(
                 Block::default()
@@ -478,18 +514,18 @@ fn draw_movie_details<B: Backend>(
             .wrap(Wrap { trim: true });
         f.render_widget(paragraph, chunks[0]);
 
-        let additional_info = Paragraph::new(vec![
-            Spans::from(vec![Span::styled(
-                "Press 'Esc' to go back to movies list",
-                Style::default().fg(Color::Gray),
-            )]),
-        ])
-        .block(Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Double)
-            .title("Navigation"))
+        let additional_info = Paragraph::new(vec![Spans::from(vec![Span::styled(
+            "Press 'Esc' to go back to movies list",
+            Style::default().fg(Color::Gray),
+        )])])
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Double)
+                .title("Navigation"),
+        )
         .alignment(tui::layout::Alignment::Center);
-        
+
         f.render_widget(additional_info, chunks[1]);
     }
 }
@@ -497,15 +533,16 @@ fn draw_movie_details<B: Backend>(
 fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::layout::Rect) {
     // Update pagination total items
     app.characters_pagination.total_items = app.characters.len();
-    
+
     // Get visible characters for current page
     let visible_characters = app.characters_pagination.get_visible_items(&app.characters);
-    
+
     let character_items: Vec<_> = visible_characters
         .iter()
         .enumerate()
         .map(|(i, character)| {
-            let index = i + app.characters_pagination.current_page * app.characters_pagination.items_per_page;
+            let index = i + app.characters_pagination.current_page
+                * app.characters_pagination.items_per_page;
             ListItem::new(format!("{}. {}", index + 1, character.name))
         })
         .collect();
@@ -518,9 +555,18 @@ fn draw_characters_tab<B: Backend>(f: &mut Frame<B>, app: &mut App, area: tui::l
 
     let page_info = app.characters_pagination.page_info();
     let title = Spans::from(vec![
-        Span::styled("Characters ", Style::default().fg(app.config.get_color("primary"))),
-        Span::styled(sort_info, Style::default().fg(app.config.get_color("secondary"))),
-        Span::styled(format!(" | {}", page_info), Style::default().fg(app.config.get_color("accent"))),
+        Span::styled(
+            "Characters ",
+            Style::default().fg(app.config.get_color("primary")),
+        ),
+        Span::styled(
+            sort_info,
+            Style::default().fg(app.config.get_color("secondary")),
+        ),
+        Span::styled(
+            format!(" | {}", page_info),
+            Style::default().fg(app.config.get_color("accent")),
+        ),
     ]);
 
     let characters_list = List::new(character_items)
@@ -592,18 +638,18 @@ fn draw_character_details<B: Backend>(
             .wrap(Wrap { trim: true });
         f.render_widget(paragraph, chunks[0]);
 
-        let additional_info = Paragraph::new(vec![
-            Spans::from(vec![Span::styled(
-                "Press 'Esc' to go back to characters list",
-                Style::default().fg(Color::Gray),
-            )]),
-        ])
-        .block(Block::default()
-            .borders(Borders::ALL)
-            .border_type(BorderType::Double)
-            .title("Navigation"))
+        let additional_info = Paragraph::new(vec![Spans::from(vec![Span::styled(
+            "Press 'Esc' to go back to characters list",
+            Style::default().fg(Color::Gray),
+        )])])
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Double)
+                .title("Navigation"),
+        )
         .alignment(tui::layout::Alignment::Center);
-        
+
         f.render_widget(additional_info, chunks[1]);
     }
 }
