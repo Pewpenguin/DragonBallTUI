@@ -28,7 +28,7 @@ jobs:
           $RELEASE_DIR = "DragonBallTUI-v$VERSION"
           New-Item -Path $RELEASE_DIR -ItemType Directory -Force
           New-Item -Path "$RELEASE_DIR\data" -ItemType Directory -Force
-          Copy-Item "target\release\dragonballtui.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
+          Copy-Item "target\release\DragonballTui.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
           Copy-Item "LICENSE" -Destination "$RELEASE_DIR\"
           Copy-Item "README.md" -Destination "$RELEASE_DIR\"
           Copy-Item "config.json" -Destination "$RELEASE_DIR\"
