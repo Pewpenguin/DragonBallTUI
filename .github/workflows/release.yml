@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -28,7 +31,7 @@ jobs:
           $RELEASE_DIR = "DragonBallTUI-v$VERSION"
           New-Item -Path $RELEASE_DIR -ItemType Directory -Force
           New-Item -Path "$RELEASE_DIR\data" -ItemType Directory -Force
-          Copy-Item "target\release\DragonballTui.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
+          Copy-Item "target\release\DragonBallTUI.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
           Copy-Item "LICENSE" -Destination "$RELEASE_DIR\"
           Copy-Item "README.md" -Destination "$RELEASE_DIR\"
           Copy-Item "config.json" -Destination "$RELEASE_DIR\"
@@ -41,7 +44,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: DragonBallTUI-v*.zip
-          name: DragonBallTUI v${{ github.ref_name }}
+          name: DragonBallTUI ${{ github.ref_name }}
           draft: false
           prerelease: false
           generate_release_notes: true
