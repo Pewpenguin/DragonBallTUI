@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Create Release Directory
+        run: |
+          $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
+          $RELEASE_DIR = "DragonBallTUI-v$VERSION"
+          New-Item -Path $RELEASE_DIR -ItemType Directory -Force
+          New-Item -Path "$RELEASE_DIR\data" -ItemType Directory -Force
+          Copy-Item "target\release\dragonballtui.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
+          Copy-Item "LICENSE" -Destination "$RELEASE_DIR\"
+          Copy-Item "README.md" -Destination "$RELEASE_DIR\"
+          Copy-Item "config.json" -Destination "$RELEASE_DIR\"
+          Copy-Item "data\*.json" -Destination "$RELEASE_DIR\data\"
+          Compress-Archive -Path $RELEASE_DIR -DestinationPath "$RELEASE_DIR.zip"
+        shell: pwsh
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: DragonBallTUI-v*.zip
+          name: DragonBallTUI v${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
