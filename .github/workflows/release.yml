@@ -11,105 +11,135 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-latest
-    outputs:
-      artifact: ${{ steps.package.outputs.artifact }}
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
       - name: Build Windows
         run: cargo build --release
+
       - name: Package Windows
         id: package
         run: |
-          $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
-          $RELEASE_DIR = "DragonBallTUI-windows-v$VERSION"
+          $VERSION = "${{ github.ref_name }}"
+          $RELEASE_DIR = "DragonBallTUI-windows-$VERSION"
           New-Item -Path $RELEASE_DIR -ItemType Directory -Force
           Copy-Item "target\release\DragonBallTUI.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
-          Copy-Item LICENSE README.md config.json -Destination $RELEASE_DIR
+          Copy-Item -Path LICENSE,README.md,config.json -Destination $RELEASE_DIR
           New-Item -Path "$RELEASE_DIR\data" -ItemType Directory -Force
-          Copy-Item data\*.json "$RELEASE_DIR\data\"
+          Copy-Item "data\*.json" "$RELEASE_DIR\data\"
           Compress-Archive -Path $RELEASE_DIR -DestinationPath "$RELEASE_DIR.zip"
-          echo "artifact=$RELEASE_DIR.zip" >> $GITHUB_OUTPUT
+          "artifact=$RELEASE_DIR.zip" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         shell: pwsh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonBallTUI-windows-${{ github.ref_name }}
+          path: DragonBallTUI-windows-${{ github.ref_name }}.zip
 
   build-linux:
     runs-on: ubuntu-latest
-    outputs:
-      artifact: ${{ steps.package.outputs.artifact }}
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
       - name: Build Linux
-        run: cargo build --release --target x86_64-unknown-linux-gnu
+        run: cargo build --release
+
       - name: Package Linux
         id: package
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          RELEASE_DIR="DragonBallTUI-linux-v$VERSION"
+          VERSION="${{ github.ref_name }}"
+          RELEASE_DIR="DragonBallTUI-linux-$VERSION"
           mkdir -p "$RELEASE_DIR/data"
-          cp target/x86_64-unknown-linux-gnu/release/DragonBallTUI "$RELEASE_DIR/DragonBallTUI"
+          cp target/release/DragonBallTUI "$RELEASE_DIR/DragonBallTUI"
+          strip "$RELEASE_DIR/DragonBallTUI"
           cp LICENSE README.md config.json "$RELEASE_DIR/"
           cp data/*.json "$RELEASE_DIR/data/"
           zip -r "$RELEASE_DIR.zip" "$RELEASE_DIR"
           echo "artifact=$RELEASE_DIR.zip" >> $GITHUB_OUTPUT
         shell: bash
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonBallTUI-linux-${{ github.ref_name }}
+          path: DragonBallTUI-linux-${{ github.ref_name }}.zip
+
   build-macos:
     runs-on: macos-latest
-    outputs:
-      artifact: ${{ steps.package.outputs.artifact }}
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
+      - name: Add macOS target
+        run: rustup target add x86_64-apple-darwin
+
       - name: Build macOS
         run: cargo build --release --target x86_64-apple-darwin
+
       - name: Package macOS
         id: package
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          RELEASE_DIR="DragonBallTUI-macos-v$VERSION"
+          VERSION="${{ github.ref_name }}"
+          RELEASE_DIR="DragonBallTUI-macos-$VERSION"
           mkdir -p "$RELEASE_DIR/data"
           cp target/x86_64-apple-darwin/release/DragonBallTUI "$RELEASE_DIR/DragonBallTUI"
+          strip "$RELEASE_DIR/DragonBallTUI"
           cp LICENSE README.md config.json "$RELEASE_DIR/"
           cp data/*.json "$RELEASE_DIR/data/"
           zip -r "$RELEASE_DIR.zip" "$RELEASE_DIR"
           echo "artifact=$RELEASE_DIR.zip" >> $GITHUB_OUTPUT
         shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonBallTUI-macos-${{ github.ref_name }}
+          path: DragonBallTUI-macos-${{ github.ref_name }}.zip
 
   create-release:
     needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build-windows.outputs.artifact }}
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
+          name: DragonBallTUI-windows-${{ github.ref_name }}
+          path: ./windows
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build-linux.outputs.artifact }}
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
+          name: DragonBallTUI-linux-${{ github.ref_name }}
+          path: ./linux
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.build-macos.outputs.artifact }}
+          name: DragonBallTUI-macos-${{ github.ref_name }}
+          path: ./macos
 
       - name: Create GitHub Release
-        id: create_release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            DragonBallTUI-windows-v*.zip
-            DragonBallTUI-linux-v*.zip
-            DragonBallTUI-macos-v*.zip
+            windows/DragonBallTUI-windows-*.zip
+            linux/DragonBallTUI-linux-*.zip
+            macos/DragonBallTUI-macos-*.zip
           name: DragonBallTUI ${{ github.ref_name }}
           draft: false
           prerelease: false
