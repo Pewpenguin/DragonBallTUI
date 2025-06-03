@@ -9,41 +9,107 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
-
+    outputs:
+      artifact: ${{ steps.package.outputs.artifact }}
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Build
+      - name: Build Windows
         run: cargo build --release
-
-      - name: Create Release Directory
+      - name: Package Windows
+        id: package
         run: |
           $VERSION = $env:GITHUB_REF -replace 'refs/tags/v', ''
-          $RELEASE_DIR = "DragonBallTUI-v$VERSION"
+          $RELEASE_DIR = "DragonBallTUI-windows-v$VERSION"
           New-Item -Path $RELEASE_DIR -ItemType Directory -Force
-          New-Item -Path "$RELEASE_DIR\data" -ItemType Directory -Force
           Copy-Item "target\release\DragonBallTUI.exe" -Destination "$RELEASE_DIR\DragonBallTUI.exe"
-          Copy-Item "LICENSE" -Destination "$RELEASE_DIR\"
-          Copy-Item "README.md" -Destination "$RELEASE_DIR\"
-          Copy-Item "config.json" -Destination "$RELEASE_DIR\"
-          Copy-Item "data\*.json" -Destination "$RELEASE_DIR\data\"
+          Copy-Item LICENSE README.md config.json -Destination $RELEASE_DIR
+          New-Item -Path "$RELEASE_DIR\data" -ItemType Directory -Force
+          Copy-Item data\*.json "$RELEASE_DIR\data\"
           Compress-Archive -Path $RELEASE_DIR -DestinationPath "$RELEASE_DIR.zip"
+          echo "artifact=$RELEASE_DIR.zip" >> $GITHUB_OUTPUT
         shell: pwsh
+
+  build-linux:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact: ${{ steps.package.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build Linux
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+      - name: Package Linux
+        id: package
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          RELEASE_DIR="DragonBallTUI-linux-v$VERSION"
+          mkdir -p "$RELEASE_DIR/data"
+          cp target/x86_64-unknown-linux-gnu/release/DragonBallTUI "$RELEASE_DIR/DragonBallTUI"
+          cp LICENSE README.md config.json "$RELEASE_DIR/"
+          cp data/*.json "$RELEASE_DIR/data/"
+          zip -r "$RELEASE_DIR.zip" "$RELEASE_DIR"
+          echo "artifact=$RELEASE_DIR.zip" >> $GITHUB_OUTPUT
+        shell: bash
+
+  build-macos:
+    runs-on: macos-latest
+    outputs:
+      artifact: ${{ steps.package.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build macOS
+        run: cargo build --release --target x86_64-apple-darwin
+      - name: Package macOS
+        id: package
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          RELEASE_DIR="DragonBallTUI-macos-v$VERSION"
+          mkdir -p "$RELEASE_DIR/data"
+          cp target/x86_64-apple-darwin/release/DragonBallTUI "$RELEASE_DIR/DragonBallTUI"
+          cp LICENSE README.md config.json "$RELEASE_DIR/"
+          cp data/*.json "$RELEASE_DIR/data/"
+          zip -r "$RELEASE_DIR.zip" "$RELEASE_DIR"
+          echo "artifact=$RELEASE_DIR.zip" >> $GITHUB_OUTPUT
+        shell: bash
+
+  create-release:
+    needs: [build-windows, build-linux, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build-windows.outputs.artifact }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build-linux.outputs.artifact }}
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build-macos.outputs.artifact }}
 
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          files: DragonBallTUI-v*.zip
+          files: |
+            DragonBallTUI-windows-v*.zip
+            DragonBallTUI-linux-v*.zip
+            DragonBallTUI-macos-v*.zip
           name: DragonBallTUI ${{ github.ref_name }}
           draft: false
           prerelease: false
