@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::prelude::*;
 use std::path::Path;
-use tui::style::Color;
+use ratatui::style::Color;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ThemeColors {

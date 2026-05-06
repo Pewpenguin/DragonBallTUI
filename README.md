@@ -106,7 +106,7 @@ You can modify the `episodes.json`, `movies.json`, and `characters.json` files t
 
 ## Dependencies
 
-- tui: Terminal user interface library
+- ratatui: Terminal user interface library
 - crossterm: Terminal manipulation library
 - serde: Serialization and deserialization library for JSON
 - fuzzy_matcher: Library for fuzzy text matching

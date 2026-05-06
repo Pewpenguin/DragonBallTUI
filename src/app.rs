@@ -6,7 +6,7 @@ use crate::data::{
 use crate::pagination::Pagination;
 use crate::search::FuzzySearch;
 use chrono::NaiveDate;
-use tui::widgets::ListState;
+use ratatui::widgets::ListState;
 #[derive(Debug, Clone, PartialEq)]
 pub enum SortOrder {
     Ascending,

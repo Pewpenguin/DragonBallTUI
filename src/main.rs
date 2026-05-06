@@ -12,7 +12,7 @@ use crossterm::{
     ExecutableCommand,
 };
 use std::io;
-use tui::{backend::CrosstermBackend, Terminal};
+use ratatui::{backend::CrosstermBackend, Terminal};
 
 use app::App;
 use config::Config;
